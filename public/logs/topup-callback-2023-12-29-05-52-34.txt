@@ -1,0 +1,1 @@
+  {"success":"true","token":"a53d45e33ba1b3efa6a22ba42c0237a1","content":{"redirect":"https:\/\/sociabuzz.com\/payment\/x\/ca2a9052-a5d3-11ee-98fd-024283672660","expired_at":3600,"data":""}}
