@@ -4,6 +4,7 @@ namespace Config;
 
 use CodeIgniter\Events\Events;
 use CodeIgniter\Exceptions\FrameworkException;
+use CodeIgniter\HotReloader\HotReloader;
 
 /*
  * --------------------------------------------------------------------
@@ -33,6 +34,10 @@ Events::on('pre_system', static function () {
         }
 
         ob_start(static fn ($buffer) => $buffer);
+    } else if (ENVIRONMENT === 'development') {
+        Services::routes()->get('__hot-reload', static function () {
+    (new HotReloader())->run();
+        });
     }
 
     /*
