@@ -4,6 +4,7 @@ namespace Config;
 
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Session\Handlers\FileHandler;
+use CodeIgniter\Session\Handlers\DatabaseHandler;
 
 class App extends BaseConfig
 {
@@ -151,7 +152,8 @@ class App extends BaseConfig
      *
      * @deprecated use Config\Session::$driver instead.
      */
-    public string $sessionDriver = FileHandler::class;
+    // public string $driver = FileHandler::class;
+    public string $sessionDriver = DatabaseHandler::class;
 
     /**
      * --------------------------------------------------------------------------
@@ -193,7 +195,8 @@ class App extends BaseConfig
      *
      * @deprecated use Config\Session::$savePath instead.
      */
-    public string $sessionSavePath = WRITEPATH . 'session';
+    // public string $sessionSavePath = WRITEPATH . 'session';
+    public string $sessionSavePath = 'ci_sessions';
 
     /**
      * --------------------------------------------------------------------------
@@ -207,7 +210,7 @@ class App extends BaseConfig
      *
      * @deprecated use Config\Session::$matchIP instead.
      */
-    public bool $sessionMatchIP = false;
+    public bool $sessionMatchIP = true;
 
     /**
      * --------------------------------------------------------------------------
@@ -231,7 +234,7 @@ class App extends BaseConfig
      *
      * @deprecated use Config\Session::$regenerateDestroy instead.
      */
-    public bool $sessionRegenerateDestroy = false;
+    public bool $sessionRegenerateDestroy = true;
 
     /**
      * --------------------------------------------------------------------------
