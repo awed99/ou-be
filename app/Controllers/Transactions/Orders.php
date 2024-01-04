@@ -180,7 +180,7 @@ class Orders extends BaseController
             }
 
             $update['status'] = $status;
-            $db->table('orders')->where('(orders.is_done = 0 or orders.is_done = \'0\' or orders.is_done = false)')->where('status <> \'Success\'')->where('order_id ', $key->order_id)->ignore()->update($update);
+            $db->table('orders')->where('(orders.is_done = 0 or orders.is_done = \'0\' or orders.is_done = false)')->where('status <> \'Success\'')->where('order_id ', $key->order_id)->update($update);
         }
 
         $db->close();
@@ -223,7 +223,7 @@ class Orders extends BaseController
             }
 
             $update['status'] = $status;
-            $db->table('orders')->where('(orders.is_done = 0 or orders.is_done = \'0\' or orders.is_done = false)')->where('status <> \'Success\'')->where('order_id ', $key->order_id)->ignore()->update($update);
+            $db->table('orders')->where('(orders.is_done = 0 or orders.is_done = \'0\' or orders.is_done = false)')->where('status <> \'Success\'')->where('order_id ', $key->order_id)->update($update);
         }
 
         $db->close();
@@ -281,7 +281,7 @@ class Orders extends BaseController
             }
 
             $update['status'] = $status;
-            $builder2 = $db->table('orders')->where('(orders.is_done = 0 or orders.is_done = \'0\' or orders.is_done = false)')->where('status <> \'Success\'')->where('order_id ', $key->order_id)->ignore()->update($update);
+            $builder2 = $db->table('orders')->where('(orders.is_done = 0 or orders.is_done = \'0\' or orders.is_done = false)')->where('status <> \'Success\'')->where('order_id ', $key->order_id)->update($update);
         }
 
         $dataFinal2 = $query->getResult();
@@ -315,7 +315,7 @@ class Orders extends BaseController
         
         $update['status'] = 'Success';
         $update['is_done '] = '1';
-        $db->table('orders')->where('order_id ', $postData['order_id'])->ignore()->update($update);
+        $db->table('orders')->where('order_id ', $postData['order_id'])->update($update);
         $data = $db->table('orders')->where('order_id ', $postData['order_id'])->get()->getRow();
         // $this->postUpdate_all_status_activation();
 
@@ -360,7 +360,7 @@ class Orders extends BaseController
 
         // print_r($dataFinal);
         // die();
-        if ($dataFinal !== 'ACCESS_CANCEL') {
+        if ($dataFinal === 'EARLY_CANCEL_DENIED') {
             echo '{
                 "code": 1,
                 "error": "System Error.",
@@ -370,12 +370,14 @@ class Orders extends BaseController
             die();
         }
         
-        $update['status'] = 'Cancel';
+        if (!$postData['order_id']) {
+            $update['status'] = 'Cancel';
+        }
         $update['is_done '] = '1';
-        $db->table('orders')->where('(orders.is_done = 0 or orders.is_done = \'0\' or orders.is_done = false)')->where('status <> \'Success\'')->where('order_id ', $postData['order_id'])->ignore()->update($update);
+        $db->table('orders')->where('(orders.is_done = 0 or orders.is_done = \'0\' or orders.is_done = false)')->where('status <> \'Success\'')->where('order_id ', $postData['order_id'])->update($update);
         // $this->postUpdate_all_status_activation();
-        $update2['is_done '] = '1';
-        $db->table('orders')->where('(orders.is_done = 0 or orders.is_done = \'0\' or orders.is_done = false)')->where('order_id ', $postData['order_id'])->ignore()->update($update2);
+        // $update2['is_done '] = '1';
+        // $db->table('orders')->where('(orders.is_done = 0 or orders.is_done = \'0\' or orders.is_done = false)')->where('order_id', $postData['order_id'])->update($update2);
         
         echo '{
             "code": 0,
