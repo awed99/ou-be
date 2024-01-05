@@ -333,6 +333,10 @@ class Service extends BaseController
             die();
         }
 
+        
+        $order_id = json_decode($dataX);
+        $dataFinal = curl(getenv('API_SERVICE').$api_key.'&action=setStatus&status=1&id='.$order_id->activationId);
+
         $orders = new Orders;
         $dataZ = $orders->postCreate($dataX, $dataY);
         // $data = json_decode($dataX);

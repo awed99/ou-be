@@ -43,7 +43,7 @@ class Saldo extends BaseController
         (SELECT 
         (COALESCE(ROUND(SUM(bto.price_user), 2), 0) / '.($usdCURS).')
         from orders bto
-        where (bto.status = \'Success\' or bto.status = \'Waiting for SMS\') and id_user = '.$id_user.') as total_orders,
+        where (bto.status = \'Success\' or bto.status = \'Waiting for SMS\' or bto.status = \'Waiting for Retry SMS\') and id_user = '.$id_user.') as total_orders,
         (
             (SELECT 
             COALESCE(ROUND(SUM(bftu.amount), 2), 0)
@@ -56,7 +56,7 @@ class Saldo extends BaseController
             (SELECT 
             (COALESCE(ROUND(SUM(bto.price_user), 2), 0) / '.($usdCURS).')
             from orders bto
-            where (bto.status = \'Success\' or bto.status = \'Waiting for SMS\') and id_user = '.$id_user.')
+            where (bto.status = \'Success\' or bto.status = \'Waiting for SMS\' or bto.status = \'Waiting for Retry SMS\') and id_user = '.$id_user.')
         ) as saldo;
         ';
         $db = db_connect();

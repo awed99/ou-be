@@ -312,6 +312,7 @@ class Orders extends BaseController
         $id_user = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getRow()->id_user;
 
         $dataFinal = curl(getenv('API_SERVICE').$api_key.'&action=setStatus&status=3&id='.$postData['order_id']);
+        $dataFinal = curl(getenv('API_SERVICE').$api_key.'&action=setStatus&status=1&id='.$postData['order_id']);
         
         $update['status'] = 'Success';
         $update['is_done '] = '1';
@@ -370,11 +371,11 @@ class Orders extends BaseController
             die();
         }
         
-        if (!$postData['completed']) {
+        if (!$postData['completed'] || $dataFinal === 'BAD_STATUS') {
             $update['status'] = 'Cancel';
         }
         $update['is_done '] = '1';
-        $db->table('orders')->where('(orders.is_done = 0 or orders.is_done = \'0\' or orders.is_done = false)')->where('status <> \'Success\'')->where('order_id ', $postData['order_id'])->update($update);
+        $db->table('orders')->where('(orders.is_done = 0 or orders.is_done = \'0\' or orders.is_done = false)')->where('order_id ', $postData['order_id'])->update($update);
         // $this->postUpdate_all_status_activation();
         // $update2['is_done '] = '1';
         // $db->table('orders')->where('(orders.is_done = 0 or orders.is_done = \'0\' or orders.is_done = false)')->where('order_id', $postData['order_id'])->update($update2);
