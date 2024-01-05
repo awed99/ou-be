@@ -84,8 +84,8 @@ class Topup extends BaseController
         $db->close();
         $finalData = json_encode($dataFinal);
 
-        $total_deposit = $dataFinal[0]->total_deposit ?? 0;
-        if ($total_deposit > 0 && $total_deposit <= 12) {
+        $total_deposit = (is_null($dataFinal[0]->total_deposit)) ? 0 : (int)$dataFinal[0]->total_deposit;
+        if ($total_deposit >= 0 && $total_deposit <= 12) {
             $level = '0';
             $discount = '0%';
         } else if ($total_deposit > 12 && $total_deposit <= 60) {
