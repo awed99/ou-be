@@ -371,7 +371,7 @@ class Orders extends BaseController
             die();
         }
         
-        if (!$postData['completed'] || $dataFinal === 'BAD_STATUS') {
+        if (!$postData['completed']) {
             $update['status'] = 'Cancel';
         }
         $update['is_done '] = '1';
