@@ -75,7 +75,7 @@ class Topup extends BaseController
         left join app_users bau on bau.id_user = bftu.id_user
         left join base_payment_methods bbpm on bbpm.id = bftu.id_base_payment_method
         left join base_currencies bbc on bbc.id = bftu.id_currency 
-        where bftu.status = \'Success\' and bftu.created_datetime > \'2023-01-01 00:00:00\'
+        where bftu.status = \'Success\' and bftu.created_datetime > \'2024-01-01 00:00:00\'
         order by bftu.id desc limit 3000;
         ';
         $query = $db->query($q);
