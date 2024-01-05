@@ -64,6 +64,7 @@ class Topup extends BaseController
 
         $q = 'SELECT 
         bftu.*,
+        sum(bftu.amount) as total_deposit,
         bau.username,
         bau.email,
         bbpm.code,
@@ -82,11 +83,51 @@ class Topup extends BaseController
         $dataFinal = $query->getResult();
         $db->close();
         $finalData = json_encode($dataFinal);
+
+        $total_deposit = $dataFinal[0]->total_deposit ?? 0;
+        if ($total_deposit > 0 && $total_deposit <= 12) {
+            $level = '0';
+            $discount = '0%';
+        } else if ($total_deposit > 12 && $total_deposit <= 60) {
+            $level = 'I';
+            $discount = '0%';
+        } else if ($total_deposit > 60 && $total_deposit <= 120) {
+            $level = 'II';
+            $discount = '5%';
+        } else if ($total_deposit > 120 && $total_deposit <= 240) {
+            $level = 'III';
+            $discount = '7.5%';
+        } else if ($total_deposit > 240 && $total_deposit <= 600) {
+            $level = 'IV';
+            $discount = '10%';
+        } else if ($total_deposit > 600 && $total_deposit <= 1200) {
+            $level = 'V';
+            $discount = '12.5%';
+        } else if ($total_deposit > 1200 && $total_deposit <= 1800) {
+            $level = 'VI';
+            $discount = '15%';
+        } else if ($total_deposit > 1800 && $total_deposit <= 2400) {
+            $level = 'VII';
+            $discount = '20%';
+        } else if ($total_deposit > 2400 && $total_deposit <= 3600) {
+            $level = 'VIII';
+            $discount = '25%';
+        } else if ($total_deposit > 3600 && $total_deposit <= 4800) {
+            $level = 'IX';
+            $discount = '30%';
+        } else if ($total_deposit > 4800) {
+            $level = 'X';
+            $discount = '40%';
+        }
+
         echo '{
             "code": 0,
             "error": "",
             "message": "",
-            "data": '.$finalData.'
+            "data": '.$finalData.',
+            "total_deposit": '.$total_deposit.',
+            "level": "'.$level.'",
+            "discount": "'.$discount.'"
         }';
     }
 
