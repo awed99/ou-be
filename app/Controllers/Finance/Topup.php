@@ -44,6 +44,52 @@ class Topup extends BaseController
         }';
     }
 
+    public function postList_all()
+    {   
+        cekValidation('finance/topup/list_all');
+        $request = request();
+        $db = db_connect();
+        $dataPost = $request->getJSON(true);
+        $isset = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getNumRows();
+
+        if ($isset < 1) {
+            echo '{
+                "code": 1,
+                "error": "Token is not valid!",
+                "message": "Token is not valid!",
+                "data": null
+            }';
+            exit();
+        }
+
+        $q = 'SELECT 
+        bftu.*,
+        bau.username,
+        bau.email,
+        bbpm.code,
+        bbpm.name,
+        bbc.currency_symbol,
+        bbc.currency_code,
+        bbc.currency_name
+        from topup_users bftu
+        left join app_users bau on bau.id_user = bftu.id_user
+        left join base_payment_methods bbpm on bbpm.id = bftu.id_base_payment_method
+        left join base_currencies bbc on bbc.id = bftu.id_currency 
+        where bftu.status = \'Success\' and bftu.created_datetime > \'2024-01-01 00:00:00\'
+        order by bftu.id desc limit 3000;
+        ';
+        $query = $db->query($q);
+        $dataFinal = $query->getResult();
+        $db->close();
+        $finalData = json_encode($dataFinal);
+        echo '{
+            "code": 0,
+            "error": "",
+            "message": "",
+            "data": '.$finalData.'
+        }';
+    }
+
     public function postCreate()
     {   
         $request = request();
