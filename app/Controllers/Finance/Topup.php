@@ -64,7 +64,6 @@ class Topup extends BaseController
 
         $q = 'SELECT 
         bftu.*,
-        sum(bftu.amount) as total_deposit,
         bau.username,
         bau.email,
         bbpm.code,
@@ -76,15 +75,25 @@ class Topup extends BaseController
         left join app_users bau on bau.id_user = bftu.id_user
         left join base_payment_methods bbpm on bbpm.id = bftu.id_base_payment_method
         left join base_currencies bbc on bbc.id = bftu.id_currency 
-        where bftu.status = \'Success\' and bftu.created_datetime > \'2024-01-01 00:00:00\'
+        where bftu.status = \'Success\' and bftu.created_datetime > \'2023-01-01 00:00:00\'
         order by bftu.id desc limit 3000;
         ';
         $query = $db->query($q);
         $dataFinal = $query->getResult();
         $db->close();
-        $finalData = json_encode($dataFinal);
 
-        $total_deposit = (is_null($dataFinal[0]->total_deposit)) ? 0 : (int)$dataFinal[0]->total_deposit;
+        $total_deposit = 0;
+        $_dataFinal = [];
+        foreach ($dataFinal as $val) {
+            $total_deposit = $total_deposit + $val->amount;
+            $val->email = maskingString($val->email);
+            $val->username = maskingString($val->username);
+            unset($val->id_user);
+            array_push($_dataFinal, $val);
+        }
+        
+        $finalData = json_encode($_dataFinal);
+
         if ($total_deposit >= 0 && $total_deposit <= 12) {
             $level = '0';
             $discount = '0%';
