@@ -151,7 +151,7 @@ class Saldo extends BaseController
             }
         }';
 
-        return json_encode($res);
+        return json_decode($res);
     }
 }
 
