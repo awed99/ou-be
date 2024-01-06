@@ -78,11 +78,13 @@ class Callbacks extends BaseController
         $amountIDR = (int)$dt['gross_amount'];
 
         if ($status === 'capture') {
-
+            $update['updated_datetime'] = date('Y-m-d H:i:s');
+            $update['status'] = 'Success';
+        } else if ($status === 'expire') {
+            $update['updated_datetime'] = date('Y-m-d H:i:s');
+            $update['status'] = 'Expired';
         }
 
-        $update['updated_datetime'] = date('Y-m-d H:i:s');
-        $update['status'] = 'Success';
 
         $db->table('topup_users')->where('invoice_number', $inv)->update($update);
         $db->close();
