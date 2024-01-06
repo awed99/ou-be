@@ -22,14 +22,14 @@ class Saldo extends BaseController
         $builder0 = $db->table('orders')
         ->where('(is_done = 0 or is_done = \'0\' or is_done = false)')
         ->where('status <> \'Success\'')
-        ->where('(created_date <= (NOW() - interval 1 minute))')
+        ->where('(created_date <= (NOW() - interval 20 minute))')
         ->update($update0);
 
         $update1['is_done'] = '1';
         $builder1 = $db->table('orders')
         ->where('(is_done = 0 or is_done = \'0\' or is_done = false)')
         ->where('status = \'Success\'')
-        ->where('(created_date <= (NOW() - interval 1 minute))')
+        ->where('(created_date <= (NOW() - interval 20 minute))')
         ->update($update1);
 
         $baseCURS = $db->table('base_profit')->where('current_date', date('Y-m-d'))->limit(1)->get()->getRow(); 
