@@ -480,6 +480,12 @@ class Topup extends BaseController
         $request = request();
         $dataPost = $request->getJSON(true);
         
+        $rawRequestInput = file_get_contents("php://input");
+        $myfile = fopen("/public/callbacks/midtrans-callback-".date('Y-m-d-H-i-s').".txt", "w") or die("Unable to open file!");
+        $txt = $rawRequestInput;
+        fwrite($myfile, $txt);
+        fclose($myfile);
+        
         $db = db_connect();
         $user = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getRow();
 
