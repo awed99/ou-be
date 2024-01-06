@@ -475,16 +475,19 @@ class Topup extends BaseController
     public function postTopup_midtrans () {
 
         cekValidation('finance/topup/topup_midtrans');
+        $feeIDR = (int)getenv('FEE_IDR');
         $request = request();
         $dataPost = $request->getJSON(true);
         
         $db = db_connect();
         $user = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getRow();
+
         // $baseCURS = $db->table('base_profit')->where('current_date', date('Y-m-d'))->limit(1)->get()->getRow(); 
         $invoice_number = 'TOPUP-'.$user->id_user.'-'.date('ymdHi');
 
         $usd = json_decode(curl('https://www.floatrates.com/daily/usd.json'));
-        $amount_idr = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate);
+        $amount_idr = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) + $feeIDR;
+        $profit_idr = round(((float)$dataPost['amount']) * $usd->idr->rate);
         // // print_r($baseCURS);
         // // print_r(' - ');
         // print_r(round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate));
@@ -517,6 +520,8 @@ class Topup extends BaseController
         $insert['id_user'] = $user->id_user;
         $insert['id_base_payment_method'] = 1;
         $insert['amount'] = $dataPost['amount'];
+        $insert['fee_idr'] = $feeIDR;
+        $insert['profit_idr'] = $profit_idr;
         $insert['id_currency'] = 1; 
         $insert['status'] = 'Pending';
         $insert['link_url'] = $resOBJ->payment_url;

@@ -116,7 +116,7 @@ class Orders extends BaseController
 
         $general_profit  = $db->table('base_profit')->limit(1)->get()->getRow()->general_profit;
         $baseCURS = $db->table('base_profit')->where('current_date', date('Y-m-d'))->limit(1)->get()->getRow();
-        $usdCURS = $baseCURS->curs_usd;
+        $usdCURS = $baseCURS->curs_idr;
 
         // print_r($postData0);
         // $postData2['order_id'] = substr(md5(rand(1,10000).date('YmdHis')), 0, 6);
@@ -315,7 +315,7 @@ class Orders extends BaseController
         $id_user = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getRow()->id_user;
         
         $baseCURS = $db->table('base_profit')->where('current_date', date('Y-m-d'))->limit(1)->get()->getRow();
-        $usdCURS = $baseCURS->curs_usd;
+        $usdCURS = $baseCURS->curs_idr;
 
         $dataFinal = curl(getenv('API_SERVICE').$api_key.'&action=setStatus&status=3&id='.$postData['order_id']);
         $dataFinal = curl(getenv('API_SERVICE').$api_key.'&action=setStatus&status=1&id='.$postData['order_id']);
