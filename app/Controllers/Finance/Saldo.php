@@ -83,7 +83,7 @@ class Saldo extends BaseController
         }';
     }
 
-    public function get_user_saldo()
+    public function get_user_saldo($auth)
     {   
         // cekValidation('finance/saldo/get_user_saldo');
         $request = request();
@@ -102,7 +102,7 @@ class Saldo extends BaseController
             $usdCURS = $usd->rub->rate;
         }
 
-        $id_user = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getRow()->id_user;
+        $id_user = $db->table('app_users')->where('token_login', $auth)->limit(1)->get()->getRow()->id_user;
         $q = 'SELECT
         (SELECT 
         COALESCE(ROUND(SUM(bftu.amount), 2), 0)

@@ -311,7 +311,7 @@ class Service extends BaseController
 
         
         $saldo = new Saldo;
-        $dataSALDO = $saldo->get_user_saldo();
+        $dataSALDO = $saldo->get_user_saldo($request->header('Authorization')->getValue());
         
         if ($dataSALDO->data->saldo < 1) {
             echo '{
