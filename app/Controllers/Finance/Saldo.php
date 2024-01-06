@@ -17,6 +17,21 @@ class Saldo extends BaseController
         $request = request();
         $db = db_connect();
 
+        $update0['is_done'] = '1';
+        $update0['status'] = 'Cancel';
+        $builder0 = $db->table('orders')
+        ->where('(is_done = 0 or is_done = \'0\' or is_done = false)')
+        ->where('status <> \'Success\'')
+        ->where('((NOW() + interval 20 minute) >= created_date)')
+        ->update($update0);
+
+        $update1['is_done'] = '1';
+        $builder1 = $db->table('orders')
+        ->where('(is_done = 0 or is_done = \'0\' or is_done = false)')
+        ->where('status = \'Success\'')
+        ->where('((NOW() + interval 20 minute) >= created_date)')
+        ->update($update1);
+
         $baseCURS = $db->table('base_profit')->where('current_date', date('Y-m-d'))->limit(1)->get()->getRow(); 
         if ($baseCURS) {
             $usdCURS = $baseCURS->curs_usd;
@@ -59,7 +74,7 @@ class Saldo extends BaseController
             where (bto.status = \'Success\' or bto.status = \'Waiting for SMS\' or bto.status = \'Waiting for Retry SMS\') and id_user = '.$id_user.')
         ) as saldo;
         ';
-        $db = db_connect();
+
         $query = $db->query($q);
         $dataFinal = $query->getRow();
         $builder4 = $db->table('base_profit');
@@ -131,7 +146,7 @@ class Saldo extends BaseController
             where (bto.status = \'Success\' or bto.status = \'Waiting for SMS\' or bto.status = \'Waiting for Retry SMS\') and id_user = '.$id_user.')
         ) as saldo;
         ';
-        $db = db_connect();
+        
         $query = $db->query($q);
         $dataFinal = $query->getRow();
         $builder4 = $db->table('base_profit');
