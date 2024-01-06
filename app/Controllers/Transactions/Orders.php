@@ -114,7 +114,9 @@ class Orders extends BaseController
         $builder = $db->table('orders');
         $postData0 = $data ? json_decode($data, true) : json_decode($postData['data'], true);
 
-        $general_profit  = $db->table('base_profit')->limit(1)->get()->getRow()->general_profit ;
+        $general_profit  = $db->table('base_profit')->limit(1)->get()->getRow()->general_profit;
+        $baseCURS = $db->table('base_profit')->where('current_date', date('Y-m-d'))->limit(1)->get()->getRow();
+        $usdCURS = $baseCURS->curs_usd;
 
         // print_r($postData0);
         // $postData2['order_id'] = substr(md5(rand(1,10000).date('YmdHis')), 0, 6);
@@ -131,6 +133,7 @@ class Orders extends BaseController
         // $postData2['price_profit'] = round($data2['price_user'] - ($postData0['activationCost'] * 1), 2);
         $postData2['price_user'] = ($postData0['activationCost'] + $general_profit);
         $postData2['price_profit'] = round(($postData0['activationCost'] + $general_profit) - ($postData0['activationCost'] * 1), 2);
+        $postData2['price_profit_idr'] = $postData2['price_profit'] * $usdCURS;
         $postData2['invoice_number'] = 'INV/'.date('Y').'/'.date('m').'/'.$postData2['id_user'].'/'.$postData2['order_id'];
         // echo json_encode($postData2);
 
@@ -310,6 +313,9 @@ class Orders extends BaseController
         $db = db_connect();
         $api_key = getenv('API_SERVICE_KEY');
         $id_user = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getRow()->id_user;
+        
+        $baseCURS = $db->table('base_profit')->where('current_date', date('Y-m-d'))->limit(1)->get()->getRow();
+        $usdCURS = $baseCURS->curs_usd;
 
         $dataFinal = curl(getenv('API_SERVICE').$api_key.'&action=setStatus&status=3&id='.$postData['order_id']);
         $dataFinal = curl(getenv('API_SERVICE').$api_key.'&action=setStatus&status=1&id='.$postData['order_id']);
@@ -332,6 +338,7 @@ class Orders extends BaseController
         $insert['price_admin'] = $data->price_admin;
         $insert['price_real'] = $data->price_real;
         $insert['price_profit'] = $data->price_profit;
+        $insert['price_profit_idr'] = $insert['price_profit'] * $usdCURS;
         $insert['id_currency'] = $data->id_currency;
         $insert['exp_date'] = $data->exp_date;
         $insert['created_date'] = $data->created_date;
