@@ -147,10 +147,11 @@ class Callbacks extends BaseController
         } else if ($dt['status'] === '8' || $dt['status'] === 8) {
             $update['status'] = 'Cancel';
             $update['sms_text'] = '('.$dt['code'].') '.$dt['text'];
+            $update['is_done'] = '1';
         }
 
 
-        $db->table('orders')->where('invoice_number', $dt['activationId'])->update($update);
+        $db->table('orders')->where('order_id', $dt['activationId'])->update($update);
         $db->close();
         
         // print_r(14318 / ($data->idr->rate));
