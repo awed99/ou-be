@@ -135,20 +135,24 @@ class Callbacks extends BaseController
         // $update['status'] = 'Expired';
         // $update['status'] = $status;
 
-        if ($dt['status'] === '1' || $dt['status'] === 1) {
-            $update['status'] = 'Waiting for SMS';
-            // $update['sms_text'] = '('.$dt['code'].') '.$dt['text'];
-        } else if ($dt['status'] === '3' || $dt['status'] === 3) {
-            $update['status'] = 'Waiting for Resend SMS';
-            // $update['sms_text'] = '('.$dt['code'].') '.$dt['text'];
-        } else if ($dt['status'] === '6' || $dt['status'] === 6) {
-            $update['status'] = 'Success';
-            $update['sms_text'] = $dt['code'];
-        } else if ($dt['status'] === '8' || $dt['status'] === 8) {
-            $update['status'] = 'Cancel';
-            // $update['sms_text'] = '('.$dt['code'].') '.$dt['text'];
-            $update['is_done'] = '1';
-        }
+        // if ($dt['status'] === '1' || $dt['status'] === 1) {
+        //     $update['status'] = 'Waiting for SMS';
+        //     // $update['sms_text'] = '('.$dt['code'].') '.$dt['text'];
+        // } else if ($dt['status'] === '3' || $dt['status'] === 3) {
+        //     $update['status'] = 'Waiting for Resend SMS';
+        //     // $update['sms_text'] = '('.$dt['code'].') '.$dt['text'];
+        // } else if ($dt['status'] === '6' || $dt['status'] === 6) {
+        //     $update['status'] = 'Success';
+        //     $update['sms_text'] = $dt['code'];
+        // } else if ($dt['status'] === '8' || $dt['status'] === 8) {
+        //     $update['status'] = 'Cancel';
+        //     // $update['sms_text'] = '('.$dt['code'].') '.$dt['text'];
+        //     $update['is_done'] = '1';
+        // }
+
+        
+        $update['status'] = 'Success';
+        $update['sms_text'] = $dt['code'];
 
 
         $db->table('orders')->where('order_id', $dt['activationId'])->update($update);
