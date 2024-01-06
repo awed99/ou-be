@@ -487,7 +487,7 @@ class Topup extends BaseController
 
         $usd = json_decode(curl('https://www.floatrates.com/daily/usd.json'));
         $amount_idr = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) + $feeIDR;
-        $profit_idr = round(((float)$dataPost['amount']) * $usd->idr->rate);
+        $profit_idr = round((0.5) * $usd->idr->rate) - $feeIDR;
         // // print_r($baseCURS);
         // // print_r(' - ');
         // print_r(round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate));
