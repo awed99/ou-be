@@ -214,6 +214,24 @@ class Users extends BaseController
         }';
     }
 
+    public function postSave_webhook()
+    {   
+        cekValidation('users/save_webhook');
+        $request = request();
+        $json = $request->getJSON(true);
+        $update["webhook_url"] = $json['webhook_url'];
+        $db = db_connect();
+        $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->update($update);
+        $db->close();
+
+        echo '{
+            "code": 0,
+            "error": "",
+            "message": "Webhook has been saved.",
+            "data": "'.$update["webhook_url"].'"
+        }';
+    }
+
     public function postIs_exist()
     {   
         $request = request();
