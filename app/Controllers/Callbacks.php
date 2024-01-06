@@ -62,7 +62,13 @@ class Callbacks extends BaseController
         // $dt = json_encode(file_get_contents("php://input"), true);
         $request = request();
         $dt = $request->getJSON(true);
-        print_r($dt);
+        // print_r($dt);
+        
+        $rawRequestInput = file_get_contents("php://input");
+        $myfile = fopen("callbacks/midtrans-callback-".date('Y-m-d-H-i-s').".txt", "w") or die("Unable to open file!");
+        $txt = $rawRequestInput;
+        fwrite($myfile, $txt);
+        fclose($myfile);
 
         $usd = json_decode(curl('https://www.floatrates.com/daily/usd.json'));
         $curs = $db->table('base_profit')->get()->getRow();
