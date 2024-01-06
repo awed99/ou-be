@@ -506,6 +506,7 @@ class Topup extends BaseController
               "duration": 1,
               "unit": "hours"
             },
+            "require_customer_detail_settings": "skip",
             "customer_required": false,
             "usage_limit": 1
           }';
