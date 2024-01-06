@@ -79,6 +79,9 @@ class Callbacks extends BaseController
 
         if ($status === 'capture') {
             $update['updated_datetime'] = date('Y-m-d H:i:s');
+            $update['status'] = 'Paid on Process Settlement';
+        } else if ($status === 'settlement') {
+            $update['updated_datetime'] = date('Y-m-d H:i:s');
             $update['status'] = 'Success';
         } else if ($status === 'expire') {
             $update['updated_datetime'] = date('Y-m-d H:i:s');
