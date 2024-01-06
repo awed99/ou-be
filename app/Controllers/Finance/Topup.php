@@ -17,7 +17,7 @@ class Topup extends BaseController
         $dataPost = $request->getJSON(true);
         $id_user = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getRow()->id_user;
 
-        $db->query("update topup_users set status = 'Expired' where NOW() >= expired_date");
+        $db->query("update topup_users set status = 'Expired' where NOW() >= expired_date and status = 'Pending'");
 
         $q = 'SELECT 
         bftu.*,
@@ -66,7 +66,7 @@ class Topup extends BaseController
             exit();
         }
 
-        $db->query("update topup_users set status = 'Expired' where NOW() >= expired_date");
+        $db->query("update topup_users set status = 'Expired' where NOW() >= expired_date and status = 'Pending'");
 
         $q = 'SELECT 
         bftu.*,
