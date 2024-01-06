@@ -116,4 +116,65 @@ class Callbacks extends BaseController
         // fwrite($myfile, $txt);
         // fclose($myfile);
     }
+
+    public function postSms_activate()
+    {
+        $db = db_connect();
+        // $dt = json_encode(file_get_contents("php://input"), true);
+        $request = request();
+        $dt = $request->getJSON(true);
+        // print_r($dt);
+        
+        $rawRequestInput = file_get_contents("php://input");
+        $myfile = fopen("callbacks/activation-".$dt['activationId'].".txt", "w") or die("Unable to open file!");
+        $txt = $rawRequestInput;
+        fwrite($myfile, $txt);
+        fclose($myfile);
+        
+        // $update['activationId'] = date('Y-m-d H:i:s');
+        // $update['status'] = 'Expired';
+        // $update['status'] = $status;
+
+        if ($dt['status'] === '1' || $dt['status'] === 1) {
+            $update['status'] = 'Waiting for SMS';
+            $update['sms_text'] = '('.$dt['code'].') '.$dt['text'];
+        } else if ($dt['status'] === '3' || $dt['status'] === 3) {
+            $update['status'] = 'Waiting for Resend SMS';
+            $update['sms_text'] = '('.$dt['code'].') '.$dt['text'];
+        } else if ($dt['status'] === '6' || $dt['status'] === 6) {
+            $update['status'] = 'Success';
+            $update['sms_text'] = '('.$dt['code'].') '.$dt['text'];
+        } else if ($dt['status'] === '8' || $dt['status'] === 8) {
+            $update['status'] = 'Cancel';
+            $update['sms_text'] = '('.$dt['code'].') '.$dt['text'];
+        }
+
+
+        $db->table('topup_users')->where('invoice_number', $dt['activationId'])->update($update);
+        $db->close();
+        
+        // print_r(14318 / ($data->idr->rate));
+
+        /*
+        {
+            "id": "4084793074",
+            "amount": 15500,
+            "currency": "IDR",
+            "amount_settled": 15500,
+            "currency_settled": "IDR",
+            "media_type": "",
+            "media_url": "",
+            "supporter": "Dewa X123",
+            "email_supporter": "tesakun29@gmail.com",
+            "message": "Topup1",
+            "created_at": "2023-12-28T18:41:29+07:00"
+        }
+        */
+
+  
+        // $myfile = fopen("logs/topup-callback-".$update['id_user']."-".((int)$dt['gross_amount'] / ($data->idr->rate))."-".date('Y-m-d-H-i').".txt", "w") or die("Unable to open file!");
+        // $txt = json_encode($update['updated_datetime']);
+        // fwrite($myfile, $txt);
+        // fclose($myfile);
+    }
 }

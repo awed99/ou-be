@@ -262,30 +262,30 @@ class Orders extends BaseController
         $query2   = $builder->groupBy('orders.number')->limit(5)->get();
         $dataFinalX = $query2->getResult();
 
-        foreach($dataFinal as $key) {
-            $dataFinalX = explode(":", curl(getenv('API_SERVICE').$api_key.'&action=getStatus&id='.$key->order_id));
-            $status = 'Waiting for SMS';
-            if ($dataFinalX[0] === 'STATUS_WAIT_CODE') {
-                $status = 'Waiting for SMS';
-            } elseif ($dataFinalX[0] === 'STATUS_WAIT_RETRY') {
-                $status = 'Waiting for Retry SMS';
-            } elseif ($dataFinalX[0] === 'STATUS_WAIT_RESEND') {
-                $status = 'Waiting for Resend SMS';
-            } elseif ($dataFinalX[0] === 'STATUS_CANCEL') {
-                $status = 'Cancel';
-                $update['is_done'] = '1';
-            } elseif ($dataFinalX[0] === 'STATUS_OK') {
-                $status = 'Success';
-                $update['sms_text'] = $dataFinalX[1];
-            }
+        // foreach($dataFinal as $key) {
+        //     $dataFinalX = explode(":", curl(getenv('API_SERVICE').$api_key.'&action=getStatus&id='.$key->order_id));
+        //     $status = 'Waiting for SMS';
+        //     if ($dataFinalX[0] === 'STATUS_WAIT_CODE') {
+        //         $status = 'Waiting for SMS';
+        //     } elseif ($dataFinalX[0] === 'STATUS_WAIT_RETRY') {
+        //         $status = 'Waiting for Retry SMS';
+        //     } elseif ($dataFinalX[0] === 'STATUS_WAIT_RESEND') {
+        //         $status = 'Waiting for Resend SMS';
+        //     } elseif ($dataFinalX[0] === 'STATUS_CANCEL') {
+        //         $status = 'Cancel';
+        //         $update['is_done'] = '1';
+        //     } elseif ($dataFinalX[0] === 'STATUS_OK') {
+        //         $status = 'Success';
+        //         $update['sms_text'] = $dataFinalX[1];
+        //     }
 
-            if (time() > (strtotime($key->created_date) + 1800)){
-                $update['is_done'] = '1';
-            }
+        //     if (time() > (strtotime($key->created_date) + 1800)){
+        //         $update['is_done'] = '1';
+        //     }
 
-            $update['status'] = $status;
-            $builder2 = $db->table('orders')->where('(orders.is_done = 0 or orders.is_done = \'0\' or orders.is_done = false)')->where('status <> \'Success\'')->where('order_id ', $key->order_id)->update($update);
-        }
+        //     $update['status'] = $status;
+        //     $builder2 = $db->table('orders')->where('(orders.is_done = 0 or orders.is_done = \'0\' or orders.is_done = false)')->where('status <> \'Success\'')->where('order_id ', $key->order_id)->update($update);
+        // }
 
         $dataFinal2 = $query->getResult();
         $db->close();
