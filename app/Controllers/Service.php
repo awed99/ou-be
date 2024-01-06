@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Controllers\Transactions\Orders;
+use App\Controllers\Finance\Saldo;
 
 class Service extends BaseController
 {
@@ -307,6 +308,21 @@ class Service extends BaseController
         cekValidation('service/order_number');
         $request = request();
         $dataRequest = $request->getJSON(true);
+
+        
+        $saldo = new Saldo;
+        $dataSALDO = $saldo->get_user_saldo();
+        
+        if ($dataSALDO->data->saldo < 1) {
+            echo '{
+                "code": 1,
+                "error": "Insuficient Balance",
+                "message": "Insuficient Balance. Topup your balance first!",
+                "data": null
+            }';            
+            die();
+        }
+
         // $dataRequest = cek_token_login($dataPost);
         $db = db_connect();
         // $api_key = $db->table('token_api')->orderBy('id', 'DESC')->limit(1)->get()->getRow()->api_key;
