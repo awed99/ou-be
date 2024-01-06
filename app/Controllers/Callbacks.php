@@ -143,7 +143,7 @@ class Callbacks extends BaseController
             // $update['sms_text'] = '('.$dt['code'].') '.$dt['text'];
         } else if ($dt['status'] === '6' || $dt['status'] === 6) {
             $update['status'] = 'Success';
-            $update['sms_text'] = '('.$dt['code'].') '.$dt['text'];
+            $update['sms_text'] = $dt['code'];
         } else if ($dt['status'] === '8' || $dt['status'] === 8) {
             $update['status'] = 'Cancel';
             // $update['sms_text'] = '('.$dt['code'].') '.$dt['text'];
