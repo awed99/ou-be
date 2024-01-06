@@ -34,6 +34,9 @@ class Topup extends BaseController
         ';
         $query = $db->query($q);
         $dataFinal = $query->getResult();
+
+        $db->query("update topup_users set status = 'Expired' where expired_date >= DATE_ADD(created_datetime, INTERVAL 2 HOUR)");
+
         $db->close();
         $finalData = json_encode($dataFinal);
         echo '{
@@ -80,6 +83,9 @@ class Topup extends BaseController
         ';
         $query = $db->query($q);
         $dataFinal = $query->getResult();
+
+        $db->query("update topup_users set status = 'Expired' where expired_date >= DATE_ADD(created_datetime, INTERVAL 2 HOUR)");
+
         $db->close();
 
         $total_deposit = 0;
@@ -464,6 +470,61 @@ class Topup extends BaseController
         sleep(1);
         $X__source = curl('https://sociabuzz.com/otpus/donate/get-form', 1, $dataPostForm, $headers);
         echo $X__source;
+    }
+        
+    public function postTopup_midtrans () {
+
+        cekValidation('finance/topup/topup_midtrans');
+        $request = request();
+        $dataPost = $request->getJSON(true);
+        
+        $db = db_connect();
+        $user = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getRow();
+        // $baseCURS = $db->table('base_profit')->where('current_date', date('Y-m-d'))->limit(1)->get()->getRow(); 
+        $invoice_number = 'TOPUP-'.$user->id_user.'-'.date('ymdHi');
+
+        $usd = json_decode(curl('https://www.floatrates.com/daily/usd.json'));
+        $amount_idr = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate);
+        // // print_r($baseCURS);
+        // // print_r(' - ');
+        // print_r(round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate));
+        // print_r(' - ');
+        // print_r(((float)$dataPost['amount'] + 0.5));
+        // die();
+        
+        $headers = [
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Authorization: Basic ' . getenv('MIDTRANS_AUTHORIZATION'),
+        ];
+        $bodyPost = '{
+            "transaction_details": {
+              "order_id": "'.$invoice_number.'",
+              "gross_amount": '.($amount_idr).'
+            },
+            "expiry": {
+              "duration": 1,
+              "unit": "hours"
+            },
+            "customer_required": false,
+            "usage_limit": 1
+          }';
+        $res = curl(getenv('MIDTRANS_HOST_URL').'v1/payment-links', 1, $bodyPost, $headers);
+        $resOBJ = json_decode($res);
+        
+        $insert['invoice_number'] = $invoice_number;
+        $insert['id_user'] = $user->id_user;
+        $insert['id_base_payment_method'] = 1;
+        $insert['amount'] = $dataPost['amount'];
+        $insert['id_currency'] = 1; 
+        $insert['status'] = 'Pending';
+        $insert['link_url'] = $resOBJ->payment_url;
+        $insert['expired_date'] = date('Y-m-d H:i:s', strtotime('1 hour'));
+
+        $db->table('topup_users')->insert($insert);
+        $db->close();
+
+        echo $res;
     }
 }
 

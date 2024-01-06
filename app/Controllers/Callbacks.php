@@ -55,4 +55,54 @@ class Callbacks extends BaseController
         fwrite($myfile, $txt);
         fclose($myfile);
     }
+
+    public function postMidtrans()
+    {
+        $db = db_connect();
+        // $dt = json_encode(file_get_contents("php://input"), true);
+        $request = request();
+        $dt = $request->getJSON(true);
+        print_r($dt);
+
+        $usd = json_decode(curl('https://www.floatrates.com/daily/usd.json'));
+        $curs = $db->table('base_profit')->get()->getRow();
+
+        $inv = $dt['order_id'];
+        $status = $dt['transaction_status'];
+        $amountIDR = (int)$dt['gross_amount'];
+
+        if ($status === 'capture') {
+
+        }
+
+        $update['updated_datetime'] = date('Y-m-d H:i:s');
+        $update['status'] = 'Success';
+
+        $db->table('topup_users')->where('invoice_number', $inv)->update($update);
+        $db->close();
+        
+        // print_r(14318 / ($data->idr->rate));
+
+        /*
+        {
+            "id": "4084793074",
+            "amount": 15500,
+            "currency": "IDR",
+            "amount_settled": 15500,
+            "currency_settled": "IDR",
+            "media_type": "",
+            "media_url": "",
+            "supporter": "Dewa X123",
+            "email_supporter": "tesakun29@gmail.com",
+            "message": "Topup1",
+            "created_at": "2023-12-28T18:41:29+07:00"
+        }
+        */
+
+  
+        $myfile = fopen("logs/topup-callback-".$insert['id_user']."-".((int)$dt['amount_settled'] / ($data->idr->rate))."-".date('Y-m-d-H-i').".txt", "w") or die("Unable to open file!");
+        $txt = json_encode($insert['created_datetime']);
+        fwrite($myfile, $txt);
+        fclose($myfile);
+    }
 }
