@@ -342,7 +342,7 @@ class Orders extends BaseController
         $insert['id_currency'] = $data->id_currency;
         $insert['exp_date'] = $data->exp_date;
         $insert['created_date'] = $data->created_date;
-        $insert['status'] = 'Waiting for Retry SMS';
+        $insert['status'] = 'Waiting for Resend SMS';
         $insert['invoice_number'] = 'INV/'.date('Y').'/'.date('m').'/'.$id_user.'/'.$postData['order_id'];
         // print_r($postData);
 
