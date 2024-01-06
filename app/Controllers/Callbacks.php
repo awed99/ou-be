@@ -150,7 +150,7 @@ class Callbacks extends BaseController
         }
 
 
-        $db->table('topup_users')->where('invoice_number', $dt['activationId'])->update($update);
+        $db->table('orders')->where('invoice_number', $dt['activationId'])->update($update);
         $db->close();
         
         // print_r(14318 / ($data->idr->rate));
