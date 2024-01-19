@@ -98,9 +98,9 @@ class Service extends BaseController
         $dataRequest = $request->getJSON(true);
         $db = db_connect();
         if (isset($dataRequest['country_id'])) {
-            $builder = $db->table('app_operators')->where('id_country', $dataRequest['country_id'])->get()->getResult();
+            $builder = $db->table('app_operators')->where('id_country', $dataRequest['country_id'])->where('op_type', 1)->get()->getResult();
         } else {
-            $builder = $db->table('app_operators')->get()->getResult();
+            $builder = $db->table('app_operators')->where('op_type', 1)->get()->getResult();
         }
         // $builder->select('app_operators.*, base_countries.country');
         // $builder->join('base_countries', 'base_countries.id = app_operators.id_country', 'left');
@@ -115,6 +115,59 @@ class Service extends BaseController
             "error": "",
             "message": "",
             "data": '.$dataFinal.'
+        }';
+    }
+
+    public function postGet_operators0($insider=false)
+    {   
+        if (!$insider) {
+            cekValidation('service/get_operators0');
+        }
+        $request = request();
+        $dataRequest = $request->getJSON(true);
+        $db = db_connect();
+        if (isset($dataRequest['country_id'])) {
+            $builder = $db->table('app_operators')->where('id_country', $dataRequest['country_id'])->where('op_type', 0)->get()->getResult();
+        } else {
+            $builder = $db->table('app_operators')->where('op_type', 0)->get()->getResult();
+        }
+        // $builder->select('app_operators.*, base_countries.country');
+        // $builder->join('base_countries', 'base_countries.id = app_operators.id_country', 'left');
+        $dataFinal = json_encode($builder);
+        $db->close();
+        if ($insider) {
+            return $builder;
+        }
+
+        echo '{
+            "code": 0,
+            "error": "",
+            "message": "",
+            "data": '.$dataFinal.'
+        }';
+    }
+
+    public function postList_products($insider=false)
+    {   
+        if (!$insider) {
+            cekValidation('service/list_products');
+        }
+        $request = request();
+        $dataRequest = $request->getJSON(true);
+        $db = db_connect();
+        $dataFinal = $db->table('app_products')->where('status', 0)->where($dataRequest)->get(100)->getResult();
+        $total_data = $db->table('app_products')->where('status', 0)->where($dataRequest)->get()->getNumRows();
+        $db->close();
+        if ($insider) {
+            return array("data" => $dataFinal, "total_data" => $total_data);
+        }
+        $finalData = json_encode($dataFinal);
+        echo '{
+            "code": 0,
+            "error": "",
+            "message": "",
+            "data": '.$finalData.',
+            "total_data": '.$total_data.'
         }';
     }
 

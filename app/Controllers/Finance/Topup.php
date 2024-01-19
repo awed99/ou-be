@@ -533,6 +533,96 @@ class Topup extends BaseController
 
         echo $res;
     }
+        
+    public function postTopup_balance () {
+
+        cekValidation('finance/topup/topup_balance');
+        $request = request();
+        $dataPost = $request->getJSON(true);
+        
+        $feeIDR = (int)getenv('FEE_IDR');
+        if ($dataPost['service'] == 1 || $dataPost['service'] == '1') {
+            $feeIDR = 4500;
+        } else if ($dataPost['service'] == 2 || $dataPost['service'] == '2') {
+            $feeIDR = 2500;
+        } else if ($dataPost['service'] == 3 || $dataPost['service'] == '3') {
+            $feeIDR = 2500;
+        } else if ($dataPost['service'] == 4 || $dataPost['service'] == '4') {
+            $feeIDR = 4000;
+        } else if ($dataPost['service'] == 5 || $dataPost['service'] == '5') {
+            $feeIDR = 2500;
+        } else if ($dataPost['service'] == 6 || $dataPost['service'] == '6') {
+            $feeIDR = 4000;
+        } else if ($dataPost['service'] == 7 || $dataPost['service'] == '7') {
+            $feeIDR = 2500;
+        } else if ($dataPost['service'] == 8 || $dataPost['service'] == '8') {
+            $feeIDR = 2500;
+        } else if ($dataPost['service'] == 9 || $dataPost['service'] == '9') {
+            $feeIDR = 3500;
+        } else if ($dataPost['service'] == 10 || $dataPost['service'] == '10') {
+            $feeIDR = 3500;
+        } else if ($dataPost['service'] == 11 || $dataPost['service'] == '11') {
+            $feeIDR = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.007;
+        } else if ($dataPost['service'] == 12 || $dataPost['service'] == '12') {
+            $feeIDR = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.03;
+        } else if ($dataPost['service'] == 13 || $dataPost['service'] == '13') {
+            $feeIDR = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.03;
+        } else if ($dataPost['service'] == 14 || $dataPost['service'] == '14') {
+            $feeIDR = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.03;
+        } else if ($dataPost['service'] == 15 || $dataPost['service'] == '15') {
+            $feeIDR = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.03;
+        } else if ($dataPost['service'] == 16 || $dataPost['service'] == '16') {
+            $feeIDR = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.03;
+        } else if ($dataPost['service'] == 17 || $dataPost['service'] == '17') {
+            $feeIDR = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.007;
+        } else if ($dataPost['service'] == 18 || $dataPost['service'] == '18') {
+            $feeIDR = 2500;
+        } else if ($dataPost['service'] == 19 || $dataPost['service'] == '19') {
+            $feeIDR = 2500;
+        } else {
+            $feeIDR = 4500;
+        }
+        
+        $db = db_connect();
+        $user = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getRow();
+
+        // $baseCURS = $db->table('base_profit')->where('current_date', date('Y-m-d'))->limit(1)->get()->getRow(); 
+        $invoice_number = 'TOPUP-'.$user->id_user.'-'.date('ymdHi');
+
+        $usd = json_decode(curl('https://www.floatrates.com/daily/usd.json'));
+        $amount_idr = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) + $feeIDR;
+        $profit_idr = round((0.5) * $usd->idr->rate);
+        // // print_r($baseCURS);
+        // // print_r(' - ');
+        // print_r(round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate));
+        // print_r(' - ');
+        // print_r(((float)$dataPost['amount'] + 0.5));
+        // die();
+        
+        $headers = [
+            'Authorization: Basic ' . getenv('PAYDISINI_API_KEY'),
+        ];
+        $sign = md5(getenv('PAYDISINI_API_KEY') . $invoice_number . $dataPost['service'] . $amount_idr . '3600' . 'NewTransaction');
+        $bodyPost = 'key='.getenv('PAYDISINI_API_KEY').'&request=new&unique_code='.$invoice_number.'&service='.$dataPost['service'].'&amount='.$amount_idr.'&type_fee=2&note=Topup OTPUS '.$user->username.'&valid_time=3600&signature='.$sign;
+        $res = curl(getenv('PAYDISINI_HOST_URL'), 1, $bodyPost, $headers);
+        $resOBJ = json_decode($res);
+        
+        $insert['invoice_number'] = $invoice_number;
+        $insert['id_user'] = $user->id_user;
+        $insert['id_base_payment_method'] = 1;
+        $insert['amount'] = $dataPost['amount'];
+        $insert['fee_idr'] = $feeIDR;
+        $insert['profit_idr'] = $profit_idr;
+        $insert['id_currency'] = 1; 
+        $insert['status'] = $resOBJ->status;
+        $insert['link_url'] = $resOBJ->checkout_url;
+        $insert['expired_date'] = date('Y-m-d H:i:s', strtotime('1 hour'));
+
+        $db->table('topup_users')->insert($insert);
+        $db->close();
+
+        echo $res;
+    }
 }
 
 
