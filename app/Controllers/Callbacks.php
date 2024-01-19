@@ -117,6 +117,52 @@ class Callbacks extends BaseController
         // fclose($myfile);
     }
 
+    public function postPaydisni()
+    {
+        $db = db_connect();
+        // $dt = json_encode(file_get_contents("php://input"), true);
+        $request = request();
+        $dt = $request->getPost(true);
+        // print_r($dt);
+        
+        $rawRequestInput = file_get_contents("php://input");
+        $myfile = fopen("callbacks/".$dt['order_id'].".txt", "w") or die("Unable to open file!");
+        $txt = $rawRequestInput;
+        fwrite($myfile, $txt);
+        fclose($myfile);
+
+        $usd = json_decode(curl('https://www.floatrates.com/daily/usd.json'));
+        $curs = $db->table('base_profit')->get()->getRow();
+
+        // $inv = $dt['order_id'];
+        // $status = $dt['transaction_status'];
+        // $amountIDR = (int)$dt['gross_amount'];
+
+        $status = $dt['status'];
+        $key = $dt['key'];
+        $unique_code = $dt['unique_code'];
+        if($status == 'Success'){
+            //mysqli_query('YOUR QUERY IF PAYMENT SUCCESS');
+            $result = array('success' => true);
+            $update['updated_datetime'] = date('Y-m-d H:i:s');
+            $update['status'] = 'Success';
+        } else if($status == 'Canceled'){
+            //mysqli_query('YOUR QUERY IF PAYMENT CANCELED');
+            $result = array('success' => true);
+            $update['updated_datetime'] = date('Y-m-d H:i:s');
+            $update['status'] = 'Expired';
+        } else {
+            $result = array('success' => false);
+        }
+
+
+        $db->table('topup_users')->where('invoice_number', $unique_code)->update($update);
+        $db->close();
+
+        header('Content-type: application/json');
+        echo json_encode($result);
+    }
+
     public function postSms_activate()
     {
         $db = db_connect();

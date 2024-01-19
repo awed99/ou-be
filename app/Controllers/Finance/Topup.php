@@ -539,6 +539,7 @@ class Topup extends BaseController
         cekValidation('finance/topup/topup_balance');
         $request = request();
         $dataPost = $request->getJSON(true);
+        $usd = json_decode(curl('https://www.floatrates.com/daily/usd.json'));
         
         $feeIDR = (int)getenv('FEE_IDR');
         if ($dataPost['service'] == 1 || $dataPost['service'] == '1') {
@@ -587,10 +588,9 @@ class Topup extends BaseController
         $user = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getRow();
 
         // $baseCURS = $db->table('base_profit')->where('current_date', date('Y-m-d'))->limit(1)->get()->getRow(); 
-        $invoice_number = 'TOPUP-'.$user->id_user.'-'.date('ymdHi');
+        $invoice_number = 'OTPUS-'.$user->id_user.'-'.date('ymdHi');
 
-        $usd = json_decode(curl('https://www.floatrates.com/daily/usd.json'));
-        $amount_idr = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) + $feeIDR;
+        $amount_idr = round(round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) + $feeIDR);
         $profit_idr = round((0.5) * $usd->idr->rate);
         // // print_r($baseCURS);
         // // print_r(' - ');
@@ -602,10 +602,19 @@ class Topup extends BaseController
         $headers = [
             'Authorization: Basic ' . getenv('PAYDISINI_API_KEY'),
         ];
+        // $sign2 = (getenv('PAYDISINI_API_KEY') .'-'. $invoice_number .'-'. $dataPost['service'] .'-'. $amount_idr .'-'. '3600' .'-'. 'NewTransaction');
+        // print_r($sign2);
+        // die();
         $sign = md5(getenv('PAYDISINI_API_KEY') . $invoice_number . $dataPost['service'] . $amount_idr . '3600' . 'NewTransaction');
-        $bodyPost = 'key='.getenv('PAYDISINI_API_KEY').'&request=new&unique_code='.$invoice_number.'&service='.$dataPost['service'].'&amount='.$amount_idr.'&type_fee=2&note=Topup OTPUS '.$user->username.'&valid_time=3600&signature='.$sign;
+        if ((int)$dataPost['service'] >= 12 && (int)$dataPost['service'] <= 16) {
+            $bodyPost = 'key='.getenv('PAYDISINI_API_KEY').'&request=new&ewallet_phone='.$dataPost['phone_number'].'&unique_code='.$invoice_number.'&service='.$dataPost['service'].'&amount='.$amount_idr.'&type_fee=2&note=Topup OTPUS '.$user->username.'&valid_time=3600&signature='.$sign;
+        } else {
+            $bodyPost = 'key='.getenv('PAYDISINI_API_KEY').'&request=new&unique_code='.$invoice_number.'&service='.$dataPost['service'].'&amount='.$amount_idr.'&type_fee=2&note=Topup OTPUS '.$user->username.'&valid_time=3600&signature='.$sign;
+        }
         $res = curl(getenv('PAYDISINI_HOST_URL'), 1, $bodyPost, $headers);
         $resOBJ = json_decode($res);
+        // print_r($resOBJ);
+        // die();
         
         $insert['invoice_number'] = $invoice_number;
         $insert['id_user'] = $user->id_user;
@@ -614,8 +623,8 @@ class Topup extends BaseController
         $insert['fee_idr'] = $feeIDR;
         $insert['profit_idr'] = $profit_idr;
         $insert['id_currency'] = 1; 
-        $insert['status'] = $resOBJ->status;
-        $insert['link_url'] = $resOBJ->checkout_url;
+        $insert['status'] = $resOBJ->data->status ?? 'Pending';
+        $insert['link_url'] = $resOBJ->data->checkout_url ?? 'https://otpus.site/wallet';
         $insert['expired_date'] = date('Y-m-d H:i:s', strtotime('1 hour'));
 
         $db->table('topup_users')->insert($insert);
