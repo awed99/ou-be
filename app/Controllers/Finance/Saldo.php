@@ -88,7 +88,7 @@ class Saldo extends BaseController
             (SELECT 
             COALESCE(ROUND(SUM(op.price_user), 2), 0)
             from order_products op
-            where (id_user = '.$id_user.') -
+            where id_user = '.$id_user.') -
             (SELECT 
             (COALESCE(ROUND(SUM(bto.price_user), 2), 0) / '.($usdCURS).')
             from orders bto
