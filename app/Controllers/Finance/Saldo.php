@@ -41,11 +41,24 @@ class Saldo extends BaseController
             $update['current_date'] = date('Y-m-d');
             $update['curs_usd'] = $usd->rub->rate;
             $update['curs_idr'] = $rub->idr->rate;
+            $update['curs_usd_to_idr'] = $usd->idr->rate;
             $db->table('base_profit')->update($update)->where('id', 1);
             $usdCURS = $usd->rub->rate;
         }
 
-        $id_user = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getRow()->id_user;
+        $user = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getRow();
+        // print_r($user);
+        // die();
+        if (!$user || $user === null || $user === 0 || $user === '0' || $user === '') {
+            echo '{
+                "code": 1,
+                "error": "Unauthorized! Please login.",
+                "message": "Unauthorized! Please login."
+            }';
+            die();
+        }
+        $id_user = $user->id_user;
+
         $q = 'SELECT
         (SELECT 
         COALESCE(ROUND(SUM(bftu.amount), 2), 0)
@@ -112,6 +125,7 @@ class Saldo extends BaseController
             $rub = json_decode(curl('https://www.floatrates.com/daily/rub.json'));
             $update['current_date'] = date('Y-m-d');
             $update['curs_usd'] = $usd->rub->rate;
+            $update['curs_usd_to_idr'] = $usd->idr->rate;
             $update['curs_idr'] = $rub->idr->rate;
             $db->table('base_profit')->update($update)->where('id', 1);
             $usdCURS = $usd->rub->rate;

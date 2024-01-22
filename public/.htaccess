@@ -63,3 +63,7 @@ Options -Indexes
 # Disable server signature start
 	ServerSignature Off
 # Disable server signature end
+
+php_value upload_max_filesize 2000M
+php_value post_max_size 2000M
+php_value max_file_uploads 1000

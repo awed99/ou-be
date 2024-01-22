@@ -563,19 +563,19 @@ class Topup extends BaseController
         } else if ($dataPost['service'] == 10 || $dataPost['service'] == '10') {
             $feeIDR = 3500;
         } else if ($dataPost['service'] == 11 || $dataPost['service'] == '11') {
-            $feeIDR = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.007;
+            $feeIDR = (round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.008);
         } else if ($dataPost['service'] == 12 || $dataPost['service'] == '12') {
-            $feeIDR = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.03;
+            $feeIDR = (round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.035);
         } else if ($dataPost['service'] == 13 || $dataPost['service'] == '13') {
-            $feeIDR = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.03;
+            $feeIDR = (round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.035);
         } else if ($dataPost['service'] == 14 || $dataPost['service'] == '14') {
-            $feeIDR = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.03;
+            $feeIDR = (round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.035);
         } else if ($dataPost['service'] == 15 || $dataPost['service'] == '15') {
-            $feeIDR = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.03;
+            $feeIDR = (round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.035);
         } else if ($dataPost['service'] == 16 || $dataPost['service'] == '16') {
-            $feeIDR = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.03;
+            $feeIDR = (round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.035);
         } else if ($dataPost['service'] == 17 || $dataPost['service'] == '17') {
-            $feeIDR = round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.007;
+            $feeIDR = (round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) * 0.008);
         } else if ($dataPost['service'] == 18 || $dataPost['service'] == '18') {
             $feeIDR = 2500;
         } else if ($dataPost['service'] == 19 || $dataPost['service'] == '19') {
@@ -592,6 +592,24 @@ class Topup extends BaseController
 
         $amount_idr = round(round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) + $feeIDR);
         $profit_idr = round((0.5) * $usd->idr->rate);
+        
+        if ($dataPost['service'] == 11 || $dataPost['service'] == '11') {
+            $feeIDR = ($amount_idr * 0.008);
+        } else if ($dataPost['service'] == 12 || $dataPost['service'] == '12') {
+            $feeIDR = ($amount_idr * 0.035);
+        } else if ($dataPost['service'] == 13 || $dataPost['service'] == '13') {
+            $feeIDR = ($amount_idr * 0.035);
+        } else if ($dataPost['service'] == 14 || $dataPost['service'] == '14') {
+            $feeIDR = ($amount_idr * 0.035);
+        } else if ($dataPost['service'] == 15 || $dataPost['service'] == '15') {
+            $feeIDR = ($amount_idr * 0.035);
+        } else if ($dataPost['service'] == 16 || $dataPost['service'] == '16') {
+            $feeIDR = ($amount_idr * 0.035);
+        } else if ($dataPost['service'] == 17 || $dataPost['service'] == '17') {
+            $feeIDR = ($amount_idr * 0.008);
+        }
+
+        // $profit_idr = $amount_idr - $feeIDR;
         // // print_r($baseCURS);
         // // print_r(' - ');
         // print_r(round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate));
@@ -623,8 +641,13 @@ class Topup extends BaseController
         $insert['fee_idr'] = $feeIDR;
         $insert['profit_idr'] = $profit_idr;
         $insert['id_currency'] = 1; 
+        $insert['payment_type'] = $dataPost['service'];
+        $insert['payment_number'] = isset($resOBJ->data->virtual_account) ? chunk_split($resOBJ->data->virtual_account, 4, ' ') : '';
+        $insert['payment_name'] = isset($resOBJ->data->virtual_account) ? 'OTTOPAY' : 'PayDisini';
+        $insert['payment_amount'] = $amount_idr;
+        $insert['payment_image'] = isset($resOBJ->data->qrcode_url) ? $resOBJ->data->qrcode_url : '';
         $insert['status'] = $resOBJ->data->status ?? 'Pending';
-        $insert['link_url'] = $resOBJ->data->checkout_url ?? 'https://otpus.site/wallet';
+        $insert['link_url'] = isset($resOBJ->data->checkout_url) ? $resOBJ->data->checkout_url : 'https://otpus.site/wallet';
         $insert['expired_date'] = date('Y-m-d H:i:s', strtotime('1 hour'));
 
         $db->table('topup_users')->insert($insert);

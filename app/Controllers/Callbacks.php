@@ -157,6 +157,35 @@ class Callbacks extends BaseController
 
 
         $db->table('topup_users')->where('invoice_number', $unique_code)->update($update);
+
+        $baseCURS = $db->table('base_profit')->where('current_date', date('Y-m-d'))->limit(1)->get()->getRow(); 
+        $dt = $db->table('topup_users')->where('invoice_number', $unique_code)->get()->getRowArray();
+
+        $insert['id_user'] = $dt['id_user'];
+        $insert['amount_credit'] = 0;
+        $insert['amount_debet'] = $dt['fee_idr'];
+        $insert['amount_credit_usd'] = 0;
+        $insert['amount_debet_usd'] = (float)$dt['fee_idr'] / (float)$baseCURS->curs_usd_to_idr;
+        $insert['accounting_type'] = 1;
+        $insert['description'] = 'Fee Topup';
+        $db->table('journal_finance')->insert($insert);
+        
+        $insert2['id_user'] = $dt['id_user'];
+        $insert2['amount_credit'] = $dt['profit_idr'];
+        $insert2['amount_debet'] = 0;
+        $insert2['amount_credit_usd'] = (float)$dt['profit_idr'] / (float)$baseCURS->curs_usd_to_idr;
+        $insert2['amount_debet_usd'] = 0;
+        $insert2['description'] = 'Profit Topup User';
+        $db->table('journal_finance')->insert($insert2);
+        
+        // $insert3['id_user'] = $dt['id_user'];
+        // $insert3['amount_credit'] = $dt['profit_idr'];
+        // $insert3['amount_debet'] = 0;
+        // $insert3['amount_credit_usd'] = (float)$dt['profit_idr'] / (float)$baseCURS->curs_usd_to_idr;
+        // $insert3['amount_debet_usd'] = 0;
+        // $insert3['description'] = 'Topup User';
+        // $db->table('journal_finance')->insert($insert3);
+
         $db->close();
 
         header('Content-type: application/json');
@@ -202,6 +231,28 @@ class Callbacks extends BaseController
 
 
         $db->table('orders')->where('order_id', $dt['activationId'])->update($update);
+
+        $baseCURS = $db->table('base_profit')->where('current_date', date('Y-m-d'))->limit(1)->get()->getRow(); 
+        $dtx = $db->table('orders')->where('order_id', $dt['activationId'])->get()->getRowArray();
+
+        $insert['id_user'] = $dtx['id_user'];
+        $insert['amount_credit'] = $dtx['price_profit_idr'];
+        $insert['amount_debet'] = 0;
+        $insert['amount_credit_usd'] = (float)$dtx['price_profit_idr'] / (float)$baseCURS->curs_usd_to_idr;
+        $insert['amount_debet_usd'] = 0;
+        $insert['accounting_type'] = 2;
+        $insert['description'] = 'Profit OTP SMS + ' . $dtx['order_id '];
+        $db->table('journal_finance')->insert($insert);
+
+        $insert2['id_user'] = $dtx['id_user'];
+        $insert2['amount_credit'] = 0;
+        $insert2['amount_debet'] = $dtx['price_real'] * (float)$baseCURS->curs_idr;
+        $insert2['amount_credit_usd'] = 0;
+        $insert2['amount_debet_usd'] = (float)$dtx['price_real'] / (float)$baseCURS->curs_usd;
+        $insert2['accounting_type'] = 3;
+        $insert2['description'] = 'Profit OTP SMS + ' . $dtx['order_id '];
+        $db->table('journal_finance')->insert($insert2);
+
         $db->close();
         
         // print_r(14318 / ($data->idr->rate));
