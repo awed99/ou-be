@@ -122,12 +122,12 @@ class Callbacks extends BaseController
         $db = db_connect();
         // $dt = json_encode(file_get_contents("php://input"), true);
         $request = request();
-        $dt = $request->getJSON(true);
+        $dt = $request->getGet(true);
         // print_r($dt);
         
         $rawRequestInput = file_get_contents("php://input");
-
-        $myfile = fopen("callbacks/xxx.txt", "w") or die("Unable to open file!");
+        
+        $myfile = fopen("callbacks/".$dt['order_id'].".txt", "w") or die("Unable to open file!");
         $txt = $rawRequestInput;
         fwrite($myfile, $txt);
         fclose($myfile);
