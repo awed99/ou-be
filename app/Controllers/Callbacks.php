@@ -128,7 +128,7 @@ class Callbacks extends BaseController
         $rawRequestInput = file_get_contents("php://input");
         
         $myfile = fopen("callbacks/".$dt['unique_code'].".txt", "w") or die("Unable to open file!");
-        $txt = $rawRequestInput;
+        $txt = json_encode($dt);
         fwrite($myfile, $txt);
         fclose($myfile);
 
