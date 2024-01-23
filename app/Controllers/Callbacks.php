@@ -122,7 +122,7 @@ class Callbacks extends BaseController
         $db = db_connect();
         // $dt = json_encode(file_get_contents("php://input"), true);
         $request = request();
-        $dt = $request->getGet(true);
+        $dt = $request->getPostGet();
         // print_r($dt);
         
         $rawRequestInput = file_get_contents("php://input");
