@@ -149,6 +149,17 @@ class Orders_product extends BaseController
         $request = request();
         $postData = $request->getJSON(true);
         $db = db_connect();
+        
+        if ((float)$postData['total'] < 1) {
+            echo '{
+                "code": 1,
+                "error": "Error Order",
+                "message": "Min Order is 1 Pcs!",
+                "data": null
+            }';          
+            $db->close();  
+            die();
+        }
 
         
         $saldo = new Saldo;
@@ -166,7 +177,8 @@ class Orders_product extends BaseController
                 "error": "Insuficient Balance",
                 "message": "Insuficient Balance. Topup your balance first!",
                 "data": null
-            }';            
+            }';          
+            $db->close();  
             die();
         }
 
