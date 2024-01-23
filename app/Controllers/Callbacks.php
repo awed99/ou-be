@@ -163,12 +163,14 @@ class Callbacks extends BaseController
         $dt = $db->table('topup_users')->where('invoice_number', $unique_code)->get()->getRowArray();
 
         $idUser = explode('-', $unique_code)[1] ?? '0';
+        $feeIDR = (float)$dt['fee_idr'] ?? 0;
+        $profitIDR = (float)$dt['profit_idr'] ?? 0;
 
         $insert['id_user'] = $idUser;
         $insert['amount_credit'] = 0;
         $insert['amount_debet'] = $dt['fee_idr'];
         $insert['amount_credit_usd'] = 0;
-        $insert['amount_debet_usd'] = (float)$dt['fee_idr'] / (float)$baseCURS->curs_usd_to_idr;
+        $insert['amount_debet_usd'] = $feeIDR / (float)$baseCURS->curs_usd_to_idr;
         $insert['accounting_type'] = 1;
         $insert['description'] = 'Fee Topup';
         $db->table('journal_finance')->insert($insert);
@@ -176,7 +178,7 @@ class Callbacks extends BaseController
         $insert2['id_user'] = $idUser;
         $insert2['amount_credit'] = $dt['profit_idr'];
         $insert2['amount_debet'] = 0;
-        $insert2['amount_credit_usd'] = (float)$dt['profit_idr'] / (float)$baseCURS->curs_usd_to_idr;
+        $insert2['amount_credit_usd'] = $profitIDR / (float)$baseCURS->curs_usd_to_idr;
         $insert2['amount_debet_usd'] = 0;
         $insert2['description'] = 'Profit Topup User';
         $db->table('journal_finance')->insert($insert2);
