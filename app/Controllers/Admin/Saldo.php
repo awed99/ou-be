@@ -59,7 +59,7 @@ class Saldo extends BaseController
         }
         // $id_user = $user->id_user;
 
-        $dataFinal = $db->table('journal_finance')->select('(COALESCE(SUM(amount_credit)) - COALESCE(SUM(amount_debet))) as balance_idr, (COALESCE(SUM(amount_credit_usd)) - COALESCE(SUM(amount_debet_usd))) as balance_usd')->limit(1)->get()->getRow();
+        $dataFinal = $db->table('journal_finance')->select('(COALESCE(SUM(amount_credit), 0) - COALESCE(SUM(amount_debet), 0)) as balance_idr, (COALESCE(SUM(amount_credit_usd), 0) - COALESCE(SUM(amount_debet_usd), 0)) as balance_usd')->limit(1)->get()->getRow();
 
         // $dataFinal = $query->getRow();
         $builder4 = $db->table('base_profit');
