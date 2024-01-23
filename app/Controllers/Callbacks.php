@@ -168,7 +168,7 @@ class Callbacks extends BaseController
 
         $insert['id_user'] = $idUser;
         $insert['amount_credit'] = 0;
-        $insert['amount_debet'] = $dt['fee_idr'];
+        $insert['amount_debet'] = $feeIDR;
         $insert['amount_credit_usd'] = 0;
         $insert['amount_debet_usd'] = $feeIDR / (float)$baseCURS->curs_usd_to_idr;
         $insert['accounting_type'] = 1;
@@ -176,7 +176,7 @@ class Callbacks extends BaseController
         $db->table('journal_finance')->insert($insert);
         
         $insert2['id_user'] = $idUser;
-        $insert2['amount_credit'] = $dt['profit_idr'];
+        $insert2['amount_credit'] = $profitIDR;
         $insert2['amount_debet'] = 0;
         $insert2['amount_credit_usd'] = $profitIDR / (float)$baseCURS->curs_usd_to_idr;
         $insert2['amount_debet_usd'] = 0;
