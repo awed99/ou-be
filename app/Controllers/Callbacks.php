@@ -163,8 +163,8 @@ class Callbacks extends BaseController
         $dt = $db->table('topup_users')->where('invoice_number', $unique_code)->get()->getRowArray();
 
         $idUser = explode('-', $unique_code)[1] ?? '0';
-        $feeIDR = (float)$dt['fee_idr'] ?? 0;
-        $profitIDR = (float)$dt['profit_idr'] ?? 0;
+        $feeIDR = (isset($dt['fee_idr'])) ? (float)$dt['fee_idr'] : 0;
+        $profitIDR = (isset($dt['profit_idr'])) ? (float)$dt['profit_idr'] : 0;
 
         $insert['id_user'] = $idUser;
         $insert['amount_credit'] = 0;
