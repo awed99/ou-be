@@ -162,7 +162,9 @@ class Callbacks extends BaseController
         $baseCURS = $db->table('base_profit')->where('current_date', date('Y-m-d'))->limit(1)->get()->getRow(); 
         $dt = $db->table('topup_users')->where('invoice_number', $unique_code)->get()->getRowArray();
 
-        $insert['id_user'] = $dt['id_user'];
+        $idUser = explode('-', $unique_code)[1];
+
+        $insert['id_user'] = $idUser;
         $insert['amount_credit'] = 0;
         $insert['amount_debet'] = $dt['fee_idr'];
         $insert['amount_credit_usd'] = 0;
@@ -171,7 +173,7 @@ class Callbacks extends BaseController
         $insert['description'] = 'Fee Topup';
         $db->table('journal_finance')->insert($insert);
         
-        $insert2['id_user'] = $dt['id_user'];
+        $insert2['id_user'] = $idUser;
         $insert2['amount_credit'] = $dt['profit_idr'];
         $insert2['amount_debet'] = 0;
         $insert2['amount_credit_usd'] = (float)$dt['profit_idr'] / (float)$baseCURS->curs_usd_to_idr;
