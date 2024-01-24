@@ -28,7 +28,7 @@ class Orders_product extends BaseController
         $api_key = getenv('API_SERVICE_KEY');
         $id_user = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getRow()->id_user;
         $builder = $db->table('order_products');
-        $builder->select('app_operators.operator_code, app_operators.operator_name, app_operators.is_file, order_products.id, order_products.id_user, order_products.order_id, order_products.total, order_products.invoice_number, order_products.id_country, order_products.operator, order_products.number, order_products.sms_text, order_products.price_user, order_products.id_currency, order_products.exp_date, order_products.status, order_products.is_done, order_products.created_date, base_countries.country_code, base_countries.country, COALESCE((select count(*) from order_product_files where order_product_files.order_id=order_products.order_id), 0) as total_done');
+        $builder->select('app_operators.operator_code, app_operators.operator_name, app_operators.is_file, order_products.id, order_products.id_user, order_products.order_id, order_products.total, order_products.invoice_number, order_products.id_country, order_products.operator, order_products.number, order_products.sms_text, order_products.price_user, order_products.id_currency, order_products.exp_date, order_products.status, order_products.is_done, order_products.created_date, order_products.updated_date, base_countries.country_code, base_countries.country, COALESCE((select count(*) from order_product_files where order_product_files.order_id=order_products.order_id), 0) as total_done');
         $builder->join('app_operators', 'app_operators.operator_code = order_products.operator', 'left');
         $builder->join('base_countries', 'base_countries.id = order_products.id_country', 'left');
         $builder->where('order_products.id_user', $id_user)->where($dataPost['filter'])->orderBy('order_products.id', 'DESC');
@@ -161,11 +161,27 @@ class Orders_product extends BaseController
             die();
         }
 
+        $user = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getRow();
+        $issetOrder = $db->table('order_products')->where('id_user', $user->id_user)
+        ->where('is_file', (int)$postData['is_file'])->where('status', 'Active')->get()->getNumRows();
+
+        $orderType = ($postData['is_file'] === '1') ? 'File' : 'OTP';
+
+        if ($issetOrder > 0) {
+            echo '{
+                "code": 2,
+                "error": "Error Order",
+                "message": "You have to finish order '.$orderType.' first !",
+                "data": null
+            }';          
+            $db->close();  
+            die();
+        }
+
         
         $saldo = new Saldo;
         $dataSALDO = $saldo->get_user_saldo($request->header('Authorization')->getValue());
         $opPrice = $db->table('app_operators')->where('operator_code', $postData['operator'])->where('op_type', 0)->get()->getRow()->op_price;
-        $user = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getRow();
         $cost = ((float)$opPrice * (float)$postData['total']);
 
         // print_r($dataSALDO);

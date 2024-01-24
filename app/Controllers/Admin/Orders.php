@@ -24,7 +24,7 @@ class Orders extends BaseController
         $api_key = getenv('API_SERVICE_KEY');
         $id_user = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getRow()->id_user;
         $builder = $db->table('order_products');
-        $builder->select('app_operators.operator_code, app_operators.operator_name, app_operators.is_file, order_products.id, order_products.id_user, order_products.is_done, order_products.order_id, order_products.total, order_products.invoice_number, order_products.id_country, order_products.operator, order_products.number, order_products.sms_text, order_products.price_user, order_products.id_currency, order_products.exp_date, order_products.status, order_products.created_date, base_countries.country_code, base_countries.country, COALESCE((select count(*) from order_product_files where order_product_files.order_id=order_products.order_id), 0) as total_done');
+        $builder->select('app_operators.operator_code, app_operators.operator_name, app_operators.is_file, order_products.id, order_products.id_user, order_products.is_done, order_products.order_id, order_products.total, order_products.invoice_number, order_products.id_country, order_products.operator, order_products.number, order_products.sms_text, order_products.price_user, order_products.id_currency, order_products.exp_date, order_products.status, order_products.created_date, order_products.updated_date, base_countries.country_code, base_countries.country, COALESCE((select count(*) from order_product_files where order_product_files.order_id=order_products.order_id), 0) as total_done');
         $builder->join('app_operators', 'app_operators.operator_code = order_products.operator', 'left');
         $builder->join('base_countries', 'base_countries.id = order_products.id_country', 'left');
         $builder->where('app_operators.is_file', 1);
@@ -95,6 +95,7 @@ class Orders extends BaseController
         }
 
         $updateOrder['is_done'] = $_isDone;
+        $updateOrder['updated_date'] = date('Y-m-d H:i:s');
         $updateOrder['status'] = ($_isDone >= $_total) ? 'Done' : 'Active';
         $db->table('order_products')->where('order_id', $dataPost['order_id'])->update($updateOrder);
         
@@ -110,7 +111,7 @@ class Orders extends BaseController
         $db->table('journal_finance')->insert($insertJournal);
 
         $builder = $db->table('order_products');
-        $builder->select('app_operators.operator_code, app_operators.operator_name, app_operators.is_file, order_products.id, order_products.is_done, order_products.id_user, order_products.order_id, order_products.total, order_products.invoice_number, order_products.id_country, order_products.operator, order_products.number, order_products.sms_text, order_products.price_user, order_products.id_currency, order_products.exp_date, order_products.status, order_products.created_date, base_countries.country_code, base_countries.country, COALESCE((select count(*) from order_product_files where order_product_files.order_id=order_products.order_id), 0) as total_done');
+        $builder->select('app_operators.operator_code, app_operators.operator_name, app_operators.is_file, order_products.id, order_products.is_done, order_products.id_user, order_products.order_id, order_products.total, order_products.invoice_number, order_products.id_country, order_products.operator, order_products.number, order_products.sms_text, order_products.price_user, order_products.id_currency, order_products.exp_date, order_products.status, order_products.created_date, order_products.updated_date, base_countries.country_code, base_countries.country, COALESCE((select count(*) from order_product_files where order_product_files.order_id=order_products.order_id), 0) as total_done');
         $builder->join('app_operators', 'app_operators.operator_code = order_products.operator', 'left');
         $builder->join('base_countries', 'base_countries.id = order_products.id_country', 'left');
         $builder->where('app_operators.is_file', 1);
@@ -148,7 +149,7 @@ class Orders extends BaseController
         $db = db_connect();
         $id_user = $db->table('app_users')->where('token_login', $request->header('Authorization')->getValue())->limit(1)->get()->getRow()->id_user;
         $builder = $db->table('order_products');
-        $builder->select('app_operators.operator_code, app_operators.operator_name, app_operators.is_file, order_products.id, order_products.is_done, order_products.id_user, order_products.order_id, order_products.total, order_products.invoice_number, order_products.id_country, order_products.operator, order_products.number, order_products.sms_text, order_products.price_user, order_products.id_currency, order_products.exp_date, order_products.status, order_products.created_date, base_countries.country_code, base_countries.country, COALESCE((select count(*) from order_product_files where order_product_files.order_id=order_products.order_id), 0) as total_done');
+        $builder->select('app_operators.operator_code, app_operators.operator_name, app_operators.is_file, order_products.id, order_products.is_done, order_products.id_user, order_products.order_id, order_products.total, order_products.invoice_number, order_products.id_country, order_products.operator, order_products.number, order_products.sms_text, order_products.price_user, order_products.id_currency, order_products.exp_date, order_products.status, order_products.created_date, order_products.updated_date, base_countries.country_code, base_countries.country, COALESCE((select count(*) from order_product_files where order_product_files.order_id=order_products.order_id), 0) as total_done');
         $builder->join('app_operators', 'app_operators.operator_code = order_products.operator', 'left');
         $builder->join('base_countries', 'base_countries.id = order_products.id_country', 'left');
         $builder->where('app_operators.is_file', 0);
@@ -207,6 +208,9 @@ class Orders extends BaseController
         $insertFile['created_by'] = $user->username;
         $db->table('order_product_otp')->insert($insertFile);
         
+        $update2['updated_date'] = date('Y-m-d H:i:s');
+        $db->table('order_products')->where('order_id', $dataPost['order_id'])->update($update2);
+        
         $dataFinal = $db->table('order_product_otp')->where('order_id', $dataPost['order_id'])->orderBy('id', 'DESC')->get()->getResult();
         $_dataFinal = [];
         foreach ($dataFinal as $val) {
@@ -216,7 +220,7 @@ class Orders extends BaseController
         }
         
         $builder = $db->table('order_products');
-        $builder->select('app_operators.operator_code, app_operators.operator_name, app_operators.is_file, order_products.id, order_products.is_done, order_products.id_user, order_products.order_id, order_products.total, order_products.invoice_number, order_products.id_country, order_products.operator, order_products.number, order_products.sms_text, order_products.price_user, order_products.id_currency, order_products.exp_date, order_products.status, order_products.created_date, base_countries.country_code, base_countries.country, COALESCE((select count(*) from order_product_files where order_product_files.order_id=order_products.order_id), 0) as total_done');
+        $builder->select('app_operators.operator_code, app_operators.operator_name, app_operators.is_file, order_products.id, order_products.is_done, order_products.id_user, order_products.order_id, order_products.total, order_products.invoice_number, order_products.id_country, order_products.operator, order_products.number, order_products.sms_text, order_products.price_user, order_products.id_currency, order_products.exp_date, order_products.status, order_products.created_date, order_products.updated_date, base_countries.country_code, base_countries.country, COALESCE((select count(*) from order_product_files where order_product_files.order_id=order_products.order_id), 0) as total_done');
         $builder->join('app_operators', 'app_operators.operator_code = order_products.operator', 'left');
         $builder->join('base_countries', 'base_countries.id = order_products.id_country', 'left');
         $builder->where('app_operators.is_file', 0);
@@ -253,6 +257,7 @@ class Orders extends BaseController
         $totalDone = $db->table('order_product_otp')->where('is_request', 2)->where('order_id', $dataPost['order_id'])->get()->getNumRows();
         $orderProducts = $db->table('order_products')->where('order_id', $dataPost['order_id'])->get()->getRow();
         $update2['is_done'] = $totalDone;
+        $update2['updated_date'] = date('Y-m-d H:i:s');
         $update2['status'] = ((int)$totalDone >= $orderProducts->total) ? 'Done' : 'Active';
         $db->table('order_products')->where('order_id', $dataPost['order_id'])->update($update2);
 
@@ -280,7 +285,7 @@ class Orders extends BaseController
         }
         
         $builder = $db->table('order_products');
-        $builder->select('app_operators.operator_code, app_operators.operator_name, app_operators.is_file, order_products.id, order_products.is_done, order_products.id_user, order_products.order_id, order_products.total, order_products.invoice_number, order_products.id_country, order_products.operator, order_products.number, order_products.sms_text, order_products.price_user, order_products.id_currency, order_products.exp_date, order_products.status, order_products.created_date, base_countries.country_code, base_countries.country, COALESCE((select count(*) from order_product_files where order_product_files.order_id=order_products.order_id), 0) as total_done');
+        $builder->select('app_operators.operator_code, app_operators.operator_name, app_operators.is_file, order_products.id, order_products.is_done, order_products.id_user, order_products.order_id, order_products.total, order_products.invoice_number, order_products.id_country, order_products.operator, order_products.number, order_products.sms_text, order_products.price_user, order_products.id_currency, order_products.exp_date, order_products.status, order_products.created_date, order_products.updated_date, base_countries.country_code, base_countries.country, COALESCE((select count(*) from order_product_files where order_product_files.order_id=order_products.order_id), 0) as total_done');
         $builder->join('app_operators', 'app_operators.operator_code = order_products.operator', 'left');
         $builder->join('base_countries', 'base_countries.id = order_products.id_country', 'left');
         $builder->where('app_operators.is_file', 0);
