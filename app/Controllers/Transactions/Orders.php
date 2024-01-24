@@ -439,6 +439,14 @@ class Orders extends BaseController
         $builder->where('orders.id_user', $id_user)->orderBy('orders.id', 'DESC');
         $query   = $builder->get(3000);
         $dataFinal = $query->getResult();
+
+        $expFiles = $db->table('order_product_files')->where('created_at >', date('Y-m-d H:i:s', strtotime('3 day')))->get()->getResult();
+        foreach ($expFiles as $files) {
+            if (file_exists(FCPATH. "files/".$files->filename.'.zip')) {
+                unlink (FCPATH. "files/".$files->filename.'.zip');
+            }
+        }
+
         $db->close();
         $finalData = json_encode($dataFinal);
         echo '{

@@ -33,7 +33,7 @@ class Orders extends BaseController
         // echo $db->getLastQuery();
         // die();
 
-        $expFiles = $db->table('order_product_files')->where('created_at', date('Y-m-d H:i:s', strtotime('3 day')))->get()->getResult();
+        $expFiles = $db->table('order_product_files')->where('created_at >', date('Y-m-d H:i:s', strtotime('3 day')))->get()->getResult();
         foreach ($expFiles as $files) {
             if (file_exists(FCPATH. "files/".$files->filename.'.zip')) {
                 unlink (FCPATH. "files/".$files->filename.'.zip');
