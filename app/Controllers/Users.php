@@ -56,20 +56,21 @@ class Users extends BaseController
             
             // $loc = json_decode(curl(getenv('API_LOGS').'logs/create_log_login', 1, 'ip='.$this->get_client_ip()));
             $update["token_login"] = hash('sha256', $email.date('YmdHis'));
+            $update["last_login"] = date('Y-m-d H:i:s');
 
             $postData['ip_address'] = $this->get_client_ip();
             $postData['id_user'] = $dataFinal->id_user;
             $postData['user_role'] = $dataFinal->user_role;
             $postData['token_login'] = $update["token_login"];
             $postData['token_api'] = $dataFinal->token_api;
-            $builder0 = $db->table('log_login');
-            $builder0->insert($postData);
+            $builder0 = $db->table('log_login')->insert($postData);
 
             $update["last_ip_address"] = $this->get_client_ip();
             if (isset($loc['city'])) {
                 $update["last_ip_location"] = $loc['city'].', '.$loc['region_name'].', '.$loc['country_name'];
             }
             $session->set('login', $dataFinal);
+            $session->set('last_login', date('Y-m-d H:i:s'));
             $session->set('token_login', $update["token_login"]);
             $builder->where('email', $email);
             $builder->update($update);
