@@ -17,7 +17,7 @@ class Users extends BaseController
         $request = request();
         $db = db_connect();
 
-        $users = $db->table('app_users')->orderBy('id_user', 'DESC')->get()->getResult();
+        $users = $db->table('app_users')->where('user_role', 2)->orderBy('id_user', 'DESC')->get()->getResult();
 
         $db->close();
         $finalData = json_encode($users);
