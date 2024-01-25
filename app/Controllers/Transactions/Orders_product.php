@@ -150,6 +150,15 @@ class Orders_product extends BaseController
         $postData = $request->getJSON(true);
         $db = db_connect();
         
+        echo '{
+            "code": 1,
+            "error": "Error Order",
+            "message": "No Product/Operator Available!",
+            "data": null
+        }';          
+        $db->close();  
+        die();
+        
         if ((float)$postData['total'] < 1) {
             echo '{
                 "code": 1,
