@@ -162,7 +162,7 @@ class Callbacks extends BaseController
         $baseCURS = $db->table('base_profit')->where('current_date', date('Y-m-d'))->limit(1)->get()->getRow(); 
         $_dt = $db->table('topup_users')->where('invoice_number', $unique_code)->get();
 
-        if ($_dt) {
+        if ($_dt && $status == 'Success') {
 
             $dt = $_dt->getRowArray();
             $idUser = explode('-', $unique_code)[1] ?? '0';
