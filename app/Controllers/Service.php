@@ -127,10 +127,35 @@ class Service extends BaseController
         $dataRequest = $request->getJSON(true);
         $db = db_connect();
         if (isset($dataRequest['country_id'])) {
-            $builder = $db->table('app_operators')->where('id_country', $dataRequest['country_id'])->where('op_type', 0)->get()->getResult();
+            $builder = $db->table('app_operators')->where('id_country', $dataRequest['country_id'])->where('op_type', 0)->where('status', 1)->get()->getResult();
         } else {
-            $builder = $db->table('app_operators')->where('op_type', 0)->get()->getResult();
+            $builder = $db->table('app_operators')->where('op_type', 0)->where('status', 1)->get()->getResult();
         }
+        // $builder->select('app_operators.*, base_countries.country');
+        // $builder->join('base_countries', 'base_countries.id = app_operators.id_country', 'left');
+        $dataFinal = json_encode($builder);
+        $db->close();
+        if ($insider) {
+            return $builder;
+        }
+
+        echo '{
+            "code": 0,
+            "error": "",
+            "message": "",
+            "data": '.$dataFinal.'
+        }';
+    }
+
+    public function postGet_operators1($insider=false)
+    {   
+        if (!$insider) {
+            cekValidation('service/get_operators1');
+        }
+        $request = request();
+        $dataRequest = $request->getJSON(true);
+        $db = db_connect();
+        $builder = $db->table('app_operators')->select('distinct(id_country) as id_country')->where('op_type', 0)->get()->getResult();
         // $builder->select('app_operators.*, base_countries.country');
         // $builder->join('base_countries', 'base_countries.id = app_operators.id_country', 'left');
         $dataFinal = json_encode($builder);

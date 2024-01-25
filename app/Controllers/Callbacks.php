@@ -202,6 +202,91 @@ class Callbacks extends BaseController
         echo json_encode($result);
     }
 
+    public function postUnipayment()
+    {
+        $db = db_connect();
+        // $dt = json_encode(file_get_contents("php://input"), true);
+        $request = request();
+        $dt = $request->getJSON(true) ?? $request->getPostGet();
+        // print_r($dt);
+        
+        $rawRequestInput = file_get_contents("php://input");
+        
+        $myfile = fopen("callbacks/".$dt['order_id'].".txt", "w") or die("Unable to open file!");
+        $txt = json_encode($dt);
+        fwrite($myfile, $txt);
+        fclose($myfile);
+
+        $usd = json_decode(curl('https://www.floatrates.com/daily/usd.json'));
+        $curs = $db->table('base_profit')->get()->getRow();
+
+        // $inv = $dt['order_id'];
+        // $status = $dt['transaction_status'];
+        // $amountIDR = (int)$dt['gross_amount'];
+
+        $status = $dt['status'];
+        $key = $dt['key'];
+        $order_id = $dt['order_id'];
+        if($status == 'Success'){
+            //mysqli_query('YOUR QUERY IF PAYMENT SUCCESS');
+            $result = array('success' => true);
+            $update['updated_datetime'] = date('Y-m-d H:i:s');
+            $update['status'] = 'Success';
+        } else if($status == 'Expired'){
+            //mysqli_query('YOUR QUERY IF PAYMENT CANCELED');
+            $result = array('success' => true);
+            $update['updated_datetime'] = date('Y-m-d H:i:s');
+            $update['status'] = 'Expired';
+        } else {
+            $result = array('success' => false);
+        }
+
+
+        $db->table('topup_users')->where('invoice_number', $order_id)->update($update);
+
+        $baseCURS = $db->table('base_profit')->where('current_date', date('Y-m-d'))->limit(1)->get()->getRow(); 
+        $_dt = $db->table('topup_users')->where('invoice_number', $order_id)->get();
+
+        if ($_dt && $status == 'Confirmed') {
+
+            $__dt = $_dt->getRowArray();
+            $idUser = explode('-', $order_id)[1] ?? '0';
+            $feeIDR = (isset($__dt['fee_idr'])) ? (float)$__dt['fee_idr'] : 0;
+            $profitIDR = (isset($__dt['profit_idr'])) ? (float)$__dt['profit_idr'] : 0;
+    
+            $insert['id_user'] = $idUser;
+            $insert['amount_credit'] = 0;
+            $insert['amount_debet'] = $feeIDR;
+            $insert['amount_credit_usd'] = 0;
+            $insert['amount_debet_usd'] = $feeIDR / (float)$baseCURS->curs_usd_to_idr;
+            $insert['accounting_type'] = 1;
+            $insert['description'] = 'Fee Topup';
+            $db->table('journal_finance')->insert($insert);
+            
+            $insert2['id_user'] = $idUser;
+            $insert2['amount_credit'] = $profitIDR;
+            $insert2['amount_debet'] = 0;
+            $insert2['amount_credit_usd'] = $profitIDR / (float)$baseCURS->curs_usd_to_idr;
+            $insert2['amount_debet_usd'] = 0;
+            $insert2['description'] = 'Profit Topup User';
+            $db->table('journal_finance')->insert($insert2);
+
+        }
+        
+        // $insert3['id_user'] = $dt['id_user'];
+        // $insert3['amount_credit'] = $dt['profit_idr'];
+        // $insert3['amount_debet'] = 0;
+        // $insert3['amount_credit_usd'] = (float)$dt['profit_idr'] / (float)$baseCURS->curs_usd_to_idr;
+        // $insert3['amount_debet_usd'] = 0;
+        // $insert3['description'] = 'Topup User';
+        // $db->table('journal_finance')->insert($insert3);
+
+        $db->close();
+
+        header('Content-type: application/json');
+        echo json_encode($result);
+    }
+
     public function postSms_activate()
     {
         $db = db_connect();

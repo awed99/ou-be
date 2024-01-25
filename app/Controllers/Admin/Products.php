@@ -73,7 +73,11 @@ class Products extends BaseController
 
         $update = $json;
         $update['op_type'] = 0;
-        $update['is_file'] = ($update['is_file'] === true || $update['is_file'] === 'true') ? 1 : 0;
+        if (isset($update['is_file'])) {
+            $update['is_file'] = ($update['is_file'] === true || $update['is_file'] === 'true') ? 1 : 0;
+        }
+        // print_r($update);
+        // die();
         $db->table('app_operators')->where('id', $update['id'])->update($update);
 
         // echo $db->getLastQuery();

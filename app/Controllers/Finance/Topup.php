@@ -590,6 +590,7 @@ class Topup extends BaseController
         // $baseCURS = $db->table('base_profit')->where('current_date', date('Y-m-d'))->limit(1)->get()->getRow(); 
         $invoice_number = 'OTPUS-'.$user->id_user.'-'.date('ymdHi');
 
+        $amount_usd = (float)$dataPost['amount'] + 0.5;
         $amount_idr = round(round(((float)$dataPost['amount'] + 0.5) * $usd->idr->rate) + $feeIDR);
         $profit_idr = round((0.5) * $usd->idr->rate);
         
@@ -607,6 +608,8 @@ class Topup extends BaseController
             $feeIDR = ($amount_idr * 0.035);
         } else if ($dataPost['service'] == 17 || $dataPost['service'] == '17') {
             $feeIDR = ($amount_idr * 0.008);
+        } else if ($dataPost['service'] == 21 || $dataPost['service'] == '21') {
+            $feeIDR = ($amount_idr * 0.03);
         }
 
         // $profit_idr = $amount_idr - $feeIDR;
@@ -616,38 +619,66 @@ class Topup extends BaseController
         // print_r(' - ');
         // print_r(((float)$dataPost['amount'] + 0.5));
         // die();
+
+        $method = ($dataPost['service'] !== 21 && $dataPost['service'] !== '21') ? 1 : 2;
         
-        $headers = [
-            'Authorization: Basic ' . getenv('PAYDISINI_API_KEY'),
-        ];
-        // $sign2 = (getenv('PAYDISINI_API_KEY') .'-'. $invoice_number .'-'. $dataPost['service'] .'-'. $amount_idr .'-'. '3600' .'-'. 'NewTransaction');
-        // print_r($sign2);
-        // die();
-        $sign = md5(getenv('PAYDISINI_API_KEY') . $invoice_number . $dataPost['service'] . $amount_idr . '3600' . 'NewTransaction');
-        if ((int)$dataPost['service'] >= 12 && (int)$dataPost['service'] <= 16) {
-            $bodyPost = 'key='.getenv('PAYDISINI_API_KEY').'&request=new&ewallet_phone='.$dataPost['phone_number'].'&unique_code='.$invoice_number.'&service='.$dataPost['service'].'&amount='.$amount_idr.'&type_fee=2&note=Topup OTPUS '.$user->username.'&valid_time=3600&signature='.$sign;
-        } else {
-            $bodyPost = 'key='.getenv('PAYDISINI_API_KEY').'&request=new&unique_code='.$invoice_number.'&service='.$dataPost['service'].'&amount='.$amount_idr.'&type_fee=2&note=Topup OTPUS '.$user->username.'&valid_time=3600&signature='.$sign;
+        if ($method === 1) {
+            $headers = [
+                'Authorization: Basic ' . getenv('PAYDISINI_API_KEY'),
+            ];
+            // $sign2 = (getenv('PAYDISINI_API_KEY') .'-'. $invoice_number .'-'. $dataPost['service'] .'-'. $amount_idr .'-'. '3600' .'-'. 'NewTransaction');
+            // print_r($sign2);
+            // die();
+            $sign = md5(getenv('PAYDISINI_API_KEY') . $invoice_number . $dataPost['service'] . $amount_idr . '3600' . 'NewTransaction');
+            if ((int)$dataPost['service'] >= 12 && (int)$dataPost['service'] <= 16) {
+                $bodyPost = 'key='.getenv('PAYDISINI_API_KEY').'&request=new&ewallet_phone='.$dataPost['phone_number'].'&unique_code='.$invoice_number.'&service='.$dataPost['service'].'&amount='.$amount_idr.'&type_fee=2&note=Topup OTPUS '.$user->username.'&valid_time=3600&signature='.$sign;
+            } else {
+                $bodyPost = 'key='.getenv('PAYDISINI_API_KEY').'&request=new&unique_code='.$invoice_number.'&service='.$dataPost['service'].'&amount='.$amount_idr.'&type_fee=2&note=Topup OTPUS '.$user->username.'&valid_time=3600&signature='.$sign;
+            }
+            $res = curl(getenv('PAYDISINI_HOST_URL'), 1, $bodyPost, $headers);
+            $resOBJ = json_decode($res);
+            // print_r($resOBJ);
+            // die();
+        } else if ($method === 2) {
+            $client_id = getenv('UNIPAYMENT_CLIENT_ID');
+            $client_secret = getenv('UNIPAYMENT_CLIENT_SECRET');
+            $app_id = getenv('UNIPAYMENT_APP_ID');
+
+            $createInvoiceRequest = new \UniPayment\Client\Model\CreateInvoiceRequest();
+            $createInvoiceRequest->setAppId($app_id);
+            $createInvoiceRequest->setPriceAmount((string)$amount_usd);
+            $createInvoiceRequest->setPriceCurrency("USD");
+            $createInvoiceRequest->setNotifyUrl("https://be.otpus.site/callbacks/unipayment");
+            $createInvoiceRequest->setRedirectUrl("https://otpus.site");
+            $createInvoiceRequest->setOrderId($invoice_number);
+            $createInvoiceRequest->setTitle("OTPUS");
+            $createInvoiceRequest->setDescription("OTPUS TOPUP USER");
+
+
+            $client = new \UniPayment\Client\UniPaymentClient();
+            $client->getConfig()->setClientId($client_id);
+            $client->getConfig()->setClientSecret($client_secret);
+
+            $res = $client->createInvoice($createInvoiceRequest);
+            $resOBJ = json_decode($res);
+
         }
-        $res = curl(getenv('PAYDISINI_HOST_URL'), 1, $bodyPost, $headers);
-        $resOBJ = json_decode($res);
-        // print_r($resOBJ);
-        // die();
         
         $insert['invoice_number'] = $invoice_number;
         $insert['id_user'] = $user->id_user;
-        $insert['id_base_payment_method'] = 1;
+        $insert['id_base_payment_method'] = ($method === 1) ? 1 : 6;
         $insert['amount'] = $dataPost['amount'];
         $insert['fee_idr'] = $feeIDR;
         $insert['profit_idr'] = $profit_idr;
         $insert['id_currency'] = 1; 
         $insert['payment_type'] = $dataPost['service'];
         $insert['payment_number'] = isset($resOBJ->data->virtual_account) ? chunk_split($resOBJ->data->virtual_account, 4, ' ') : '';
-        $insert['payment_name'] = isset($resOBJ->data->virtual_account) ? 'OTTOPAY' : 'PayDisini';
+        $insert['payment_name'] = ($method === 1) ? (isset($resOBJ->data->virtual_account) ? 'OTTOPAY' : 'PayDisini') : 'UniPayment';
         $insert['payment_amount'] = $amount_idr;
-        $insert['payment_image'] = isset($resOBJ->data->qrcode_url) ? $resOBJ->data->qrcode_url : '';
-        $insert['status'] = $resOBJ->data->status ?? 'Pending';
-        $insert['link_url'] = isset($resOBJ->data->checkout_url) ? $resOBJ->data->checkout_url : 'https://otpus.site/wallet';
+        $insert['payment_image'] = '';
+        $insert['status'] = 'Pending';
+        // $insert['status'] = isset($resOBJ->data->status) ? $resOBJ->data->status : 'Pending';
+        $insert['link_url'] = isset($resOBJ->data->checkout_url) ? $resOBJ->data->checkout_url : ((isset($resOBJ->data->invoice_url)) ? $resOBJ->data->invoice_url : 'https://otpus.site/wallet');
         $insert['expired_date'] = date('Y-m-d H:i:s', strtotime('1 hour'));
 
         $db->table('topup_users')->insert($insert);
