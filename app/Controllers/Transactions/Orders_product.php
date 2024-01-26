@@ -150,20 +150,31 @@ class Orders_product extends BaseController
         $postData = $request->getJSON(true);
         $db = db_connect();
         
-        echo '{
-            "code": 1,
-            "error": "Error Order",
-            "message": "No Product/Operator Available!",
-            "data": null
-        }';          
-        $db->close();  
-        die();
+        // echo '{
+        //     "code": 1,
+        //     "error": "Error Order",
+        //     "message": "No Product/Operator Available!",
+        //     "data": null
+        // }';          
+        // $db->close();  
+        // die();
         
         if ((float)$postData['total'] < 1) {
             echo '{
                 "code": 1,
                 "error": "Error Order",
                 "message": "Min Order is 1 Pcs!",
+                "data": null
+            }';          
+            $db->close();  
+            die();
+        }
+        
+        if ((float)$postData['total'] > 10) {
+            echo '{
+                "code": 1,
+                "error": "Error Order",
+                "message": "Max Order is 10 Pcs!",
                 "data": null
             }';          
             $db->close();  
