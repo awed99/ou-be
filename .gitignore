@@ -49,6 +49,7 @@ Vagrantfile
 # Temporary Files
 #-------------------------
 public/files/*
+public/callbacks/*
 
 writable/cache/*
 !writable/cache/index.html
