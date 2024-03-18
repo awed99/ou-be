@@ -42,7 +42,7 @@ class Saldo extends BaseController
             $update['curs_usd'] = $usd->rub->rate;
             $update['curs_idr'] = $rub->idr->rate;
             $update['curs_usd_to_idr'] = $usd->idr->rate;
-            $db->table('base_profit')->update($update)->where('id', 1);
+            $db->table('base_profit')->where('id', 1)->update($update);
             $usdCURS = $usd->rub->rate;
         }
 
